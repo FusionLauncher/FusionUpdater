@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "fclientupdater.h"
+#include "fupdater.h"
 
 namespace Ui {
 class MainWindow;
@@ -15,9 +15,16 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void setupWindow();
+
+private slots:
+    void on_updateButton_clicked();
+
+    void on_restoreButton_clicked();
 
 private:
     Ui::MainWindow *ui;
+    FUpdater *updater;
 };
 
 #endif // MAINWINDOW_H
