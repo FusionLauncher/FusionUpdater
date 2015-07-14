@@ -17,7 +17,7 @@ MainWindow::~MainWindow()
 void MainWindow::setupWindow()
 {
 
-    if (true == true)//cUpdater->clientExists())
+    if (cUpdater->clientExists())
     {
 
         ui->updateButton->setText("Update");
@@ -34,9 +34,42 @@ void MainWindow::setupWindow()
 void MainWindow::on_updateButton_clicked()
 {
 
+    if (cUpdater->clientExists())
+    {
+
+        if (cUpdater->isCurrentClient())
+        {
+
+            return;
+        }
+        else
+        {
+
+            cUpdater->updateClient();
+            ui->updateButton->setText("Update");
+            ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
+        }
+    }
+    else
+        {
+
+            cUpdater->downloadClient();
+            ui->updateButton->setText("Update");
+        }
 }
 
 void MainWindow::on_restoreButton_clicked()
 {
 
+    if (cUpdater->oldClientExists())
+    {
+
+        cUpdater->restoreClient();
+        ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
+    }
+    else
+    {
+
+        return;
+    }
 }

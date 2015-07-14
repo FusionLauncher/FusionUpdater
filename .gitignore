@@ -1,1 +1,6 @@
 *.user
+FusionClientUpdater
+ui_mainwindow.h
+moc*
+*.o
+Makefile
