@@ -27,6 +27,18 @@ void MainWindow::setupWindow()
 
         ui->updateButton->setText("Download");
     }
+
+    if (cUpdater->oldClientExists())
+    {
+
+        ui->restoreButton->setEnabled(true);
+    }
+    else
+    {
+
+        ui->restoreButton->setEnabled(false);
+    }
+
     ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
 }
@@ -47,7 +59,8 @@ void MainWindow::on_updateButton_clicked()
 
             cUpdater->updateClient();
             ui->updateButton->setText("Update");
-            ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
+            ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
+            ui->restoreButton->setEnabled(true);
         }
     }
     else

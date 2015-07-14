@@ -80,6 +80,9 @@
     </property>
    </widget>
    <widget class="QPushButton" name="restoreButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>100</x>
