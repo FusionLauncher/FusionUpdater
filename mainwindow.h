@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 #include "fclientupdater.h"
+#include <QDebug>
 
 namespace Ui {
 class MainWindow;
@@ -22,6 +23,8 @@ private slots:
     void on_updateButton_clicked();
 
     void on_restoreButton_clicked();
+
+    void on_refreshButton_clicked();
 
 private:
     Ui::MainWindow *ui;

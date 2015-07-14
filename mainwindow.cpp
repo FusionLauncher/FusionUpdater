@@ -17,6 +17,8 @@ MainWindow::~MainWindow()
 void MainWindow::setupWindow()
 {
 
+    qDebug() << "Setting up window.";
+
     if (cUpdater->clientExists())
     {
 
@@ -46,6 +48,8 @@ void MainWindow::setupWindow()
 void MainWindow::on_updateButton_clicked()
 {
 
+    qDebug() << "Download/Update button clicked.";
+
     if (cUpdater->clientExists())
     {
 
@@ -74,6 +78,8 @@ void MainWindow::on_updateButton_clicked()
 void MainWindow::on_restoreButton_clicked()
 {
 
+    qDebug() << "Restore button Clicked.";
+
     if (cUpdater->oldClientExists())
     {
 
@@ -85,4 +91,13 @@ void MainWindow::on_restoreButton_clicked()
 
         return;
     }
+}
+
+void MainWindow::on_refreshButton_clicked()
+{
+
+    qDebug() << "Refresh button clicked.";
+
+    ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
+    ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
 }
