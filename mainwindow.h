@@ -5,6 +5,7 @@
 
 #include "fclientupdater.h"
 #include <QDebug>
+#include <QTime>
 
 namespace Ui {
 class MainWindow;
@@ -18,6 +19,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void setupWindow();
+    void consoleOut(QString s);
 
 private slots:
     void on_updateButton_clicked();
@@ -25,6 +27,8 @@ private slots:
     void on_restoreButton_clicked();
 
     void on_refreshButton_clicked();
+
+    void on_toggleConsole_clicked();
 
 private:
     Ui::MainWindow *ui;

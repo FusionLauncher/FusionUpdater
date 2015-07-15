@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->consoleOutput->appendPlainText("Starting Fusion Client Updater...");
+    MainWindow::consoleOut("Started Fusion client updater.");
     MainWindow::setupWindow();
 }
 
@@ -18,7 +18,7 @@ MainWindow::~MainWindow()
 void MainWindow::setupWindow()
 {
 
-    qDebug() << "Setting up window.";
+    MainWindow::consoleOut("Setting up window.");
 
     if (cUpdater->clientExists())
     {
@@ -42,20 +42,32 @@ void MainWindow::setupWindow()
         ui->restoreButton->setEnabled(false);
     }
 
+    ui->consoleOutput->hide();
+    this->setFixedHeight(80);
+
     ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+}
+
+void MainWindow::consoleOut(QString s)
+{
+
+    qDebug() << "["+ QTime::currentTime().toString() + "] " + s;
+    ui->consoleOutput->appendPlainText("[" + QTime::currentTime().toString() + "] " + s + "\n");
 }
 
 void MainWindow::on_updateButton_clicked()
 {
 
-    qDebug() << "Download/Update button clicked.";
+    MainWindow::consoleOut("Download/Update button clicked.");
 
     if (cUpdater->clientExists())
     {
 
         if (cUpdater->isCurrentClient())
         {
+
+            MainWindow::consoleOut("Client does not need updated.");
 
             return;
         }
@@ -66,6 +78,7 @@ void MainWindow::on_updateButton_clicked()
             ui->updateButton->setText("Update");
             ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
             ui->restoreButton->setEnabled(true);
+            MainWindow::consoleOut("Client updated.");
         }
     }
     else
@@ -73,23 +86,26 @@ void MainWindow::on_updateButton_clicked()
 
             cUpdater->downloadClient();
             ui->updateButton->setText("Update");
+            MainWindow::consoleOut("Downloaded client.");
         }
 }
 
 void MainWindow::on_restoreButton_clicked()
 {
 
-    qDebug() << "Restore button Clicked.";
+    MainWindow::consoleOut("Restore button clicked.");
 
     if (cUpdater->oldClientExists())
     {
 
         cUpdater->restoreClient();
         ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
+        MainWindow::consoleOut("Old client restored.");
     }
     else
     {
 
+        MainWindow::consoleOut("No old client.");
         return;
     }
 }
@@ -97,8 +113,32 @@ void MainWindow::on_restoreButton_clicked()
 void MainWindow::on_refreshButton_clicked()
 {
 
-    qDebug() << "Refresh button clicked.";
+    MainWindow::consoleOut("Refresh button clicked.");
+
 
     ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+
+    MainWindow::consoleOut("Refreshed version info.");
+}
+
+void MainWindow::on_toggleConsole_clicked()
+{
+
+    MainWindow::consoleOut("Clicked console checkbox.");
+
+    if (ui->toggleConsole->isChecked())
+    {
+
+        MainWindow::consoleOut("Showing console.");
+        this->setFixedHeight(219);
+        ui->consoleOutput->show();
+    }
+    else
+    {
+
+        MainWindow::consoleOut("Hiding console.");
+        ui->consoleOutput->hide();
+        this->setFixedHeight(80);
+    }
 }
