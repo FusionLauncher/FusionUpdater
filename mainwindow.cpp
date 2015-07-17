@@ -7,7 +7,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     MainWindow::consoleOut("Started Fusion client updater.");
-    MainWindow::setupWindow();
+    ui->consoleOutput->hide();
+    this->setFixedHeight(80);
+    ui->osSelect->addItem("Linux");
+    ui->osSelect->addItem("Windows");
+    chosenOs = 1;
+    MainWindow::refreshValues();
 }
 
 MainWindow::~MainWindow()
@@ -15,38 +20,69 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setupWindow()
+void MainWindow::refreshValues()
 {
 
-    MainWindow::consoleOut("Setting up window.");
-
-    if (cUpdater->clientExists())
-    {
-
-        ui->updateButton->setText("Update");
-    }
-    else
-    {
-
-        ui->updateButton->setText("Download");
-    }
-
-    if (cUpdater->oldClientExists())
-    {
-
-        ui->restoreButton->setEnabled(true);
-    }
-    else
-    {
-
-        ui->restoreButton->setEnabled(false);
-    }
-
-    ui->consoleOutput->hide();
-    this->setFixedHeight(80);
-
-    ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+
+    if (chosenOs == 1)
+    {
+
+        MainWindow::consoleOut("Refreshing values for Linux.");
+        ui->dVersionLabel->setText(cUpdater->getDLClientLinuxVersion());
+
+        if (cUpdater->clientLinuxExists())
+        {
+
+            ui->updateButton->setText("Update");
+        }
+        else
+        {
+
+            ui->updateButton->setText("Download");
+        }
+
+        if (cUpdater->oldClientLinuxExists())
+        {
+
+            ui->restoreButton->setEnabled(true);
+        }
+        else
+        {
+
+            ui->restoreButton->setEnabled(false);
+        }
+    }
+
+    else if (chosenOs == 2)
+    {
+
+        MainWindow::consoleOut("Refreshing values for Windows.");
+        ui->dVersionLabel->setText(cUpdater->getDLClientWindowsVersion());
+
+        if (cUpdater->clientWindowsExists())
+        {
+
+            ui->updateButton->setText("Update");
+        }
+        else
+        {
+
+            ui->updateButton->setText("Download");
+        }
+
+        if (cUpdater->oldClientWindowsExists())
+        {
+
+            ui->restoreButton->setEnabled(true);
+        }
+        else
+        {
+
+            ui->restoreButton->setEnabled(false);
+        }
+    }
+
 }
 
 void MainWindow::consoleOut(QString s)
@@ -61,33 +97,66 @@ void MainWindow::on_updateButton_clicked()
 
     MainWindow::consoleOut("Download/Update button clicked.");
 
-    if (cUpdater->clientExists())
+    if (chosenOs == 1)
     {
 
-        if (cUpdater->isCurrentClient())
+        if (cUpdater->clientLinuxExists())
         {
 
-            MainWindow::consoleOut("Client does not need updated.");
+            if (cUpdater->isCurrentLinuxClient())
+            {
 
-            return;
+                MainWindow::consoleOut("Linux client does not need updated.");
+                return;
+            }
+            else
+            {
+
+                cUpdater->updateLinuxClient();
+                ui->updateButton->setText("Update");
+                ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
+                ui->restoreButton->setEnabled(true);
+                MainWindow::consoleOut("Linux client updated.");
+            }
         }
         else
         {
 
-            cUpdater->updateClient();
+            cUpdater->downloadLinuxClient();
             ui->updateButton->setText("Update");
-            ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
-            ui->restoreButton->setEnabled(true);
-            MainWindow::consoleOut("Client updated.");
+            MainWindow::consoleOut("Downloaded linux client.");
         }
     }
-    else
+    else if (chosenOs == 2)
+    {
+
+        if (cUpdater->clientWindowsExists())
         {
 
-            cUpdater->downloadClient();
-            ui->updateButton->setText("Update");
-            MainWindow::consoleOut("Downloaded client.");
+            if (cUpdater->isCurrentWindowsClient())
+            {
+
+                MainWindow::consoleOut("Windows client does not need updated.");
+                return;
+            }
+            else
+            {
+
+                cUpdater->updateWindowsClient();
+                ui->updateButton->setText("Update");
+                ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
+                ui->restoreButton->setEnabled(true);
+                MainWindow::consoleOut("Windows client updated.");
+            }
         }
+        else
+        {
+
+            cUpdater->downloadWindowsClient();
+            ui->updateButton->setText("Update");
+            MainWindow::consoleOut("Downloaded Windows client.");
+        }
+    }
 }
 
 void MainWindow::on_restoreButton_clicked()
@@ -95,19 +164,43 @@ void MainWindow::on_restoreButton_clicked()
 
     MainWindow::consoleOut("Restore button clicked.");
 
-    if (cUpdater->oldClientExists())
+    if (chosenOs == 1)
     {
 
-        cUpdater->restoreClient();
-        ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
-        MainWindow::consoleOut("Old client restored.");
+        if (cUpdater->oldClientLinuxExists())
+        {
+
+            cUpdater->restoreLinuxClient();
+            ui->dVersionLabel->setText(cUpdater->getDLClientLinuxVersion());
+            MainWindow::consoleOut("Old linux client restored.");
+            MainWindow::refreshValues();
+        }
+        else
+        {
+
+            MainWindow::consoleOut("No old linux client.");
+            return;
+        }
     }
-    else
+    else if (chosenOs == 2)
     {
 
-        MainWindow::consoleOut("No old client.");
-        return;
+        if (cUpdater->oldClientWindowsExists())
+        {
+
+            cUpdater->restoreWindowsClient();
+            ui->dVersionLabel->setText(cUpdater->getDLClientWindowsVersion());
+            MainWindow::consoleOut("Old windows client restored.");
+            MainWindow::refreshValues();
+        }
+        else
+        {
+
+            MainWindow::consoleOut("No old windows client.");
+            return;
+        }
     }
+
 }
 
 void MainWindow::on_refreshButton_clicked()
@@ -116,10 +209,7 @@ void MainWindow::on_refreshButton_clicked()
     MainWindow::consoleOut("Refresh button clicked.");
 
 
-    ui->dVersionLabel->setText(cUpdater->getDLClientVersion());
-    ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
-
-    MainWindow::consoleOut("Refreshed version info.");
+    MainWindow::refreshValues();
 }
 
 void MainWindow::on_toggleConsole_clicked()
@@ -140,5 +230,29 @@ void MainWindow::on_toggleConsole_clicked()
         MainWindow::consoleOut("Hiding console.");
         ui->consoleOutput->hide();
         this->setFixedHeight(80);
+    }
+}
+
+void MainWindow::on_osSelect_activated(const QString &arg1)
+{
+
+    if (arg1 == "Linux")
+    {
+
+        MainWindow::consoleOut("Chose Linux.");
+        chosenOs = 1;
+        MainWindow::refreshValues();
+    }
+    else if (arg1 == "Windows")
+    {
+
+        MainWindow::consoleOut("Chose Windows.");
+        chosenOs = 2;
+        MainWindow::refreshValues();
+    }
+    else
+    {
+
+        MainWindow::consoleOut("Erros choosing OS. Try again.");
     }
 }

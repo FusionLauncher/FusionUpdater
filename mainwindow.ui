@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>330</width>
-    <height>219</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,12 +20,6 @@
    <size>
     <width>330</width>
     <height>80</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>330</width>
-    <height>219</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -158,6 +152,22 @@
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QComboBox" name="osSelect">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>10</y>
+      <width>91</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="maxVisibleItems">
+     <number>2</number>
+    </property>
+    <property name="maxCount">
+     <number>2</number>
+    </property>
+   </widget>
    <zorder>restoreButton</zorder>
    <zorder>updateButton</zorder>
    <zorder>label</zorder>
@@ -167,6 +177,7 @@
    <zorder>refreshButton</zorder>
    <zorder>toggleConsole</zorder>
    <zorder>consoleOutput</zorder>
+   <zorder>osSelect</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

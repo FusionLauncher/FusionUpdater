@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void setupWindow();
+    void refreshValues();
     void consoleOut(QString s);
 
 private slots:
@@ -30,9 +30,12 @@ private slots:
 
     void on_toggleConsole_clicked();
 
+    void on_osSelect_activated(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     FClientUpdater *cUpdater = new FClientUpdater();
+    int chosenOs; // 1 : Linux | 2 : Windows
 };
 
 #endif // MAINWINDOW_H
