@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>330</width>
-    <height>220</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,6 +20,12 @@
    <size>
     <width>330</width>
     <height>80</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>330</width>
+    <height>250</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -137,7 +143,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>110</y>
       <width>311</width>
       <height>131</height>
      </rect>
@@ -168,6 +174,19 @@
      <number>2</number>
     </property>
    </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>311</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+   </widget>
    <zorder>restoreButton</zorder>
    <zorder>updateButton</zorder>
    <zorder>label</zorder>
@@ -178,6 +197,7 @@
    <zorder>toggleConsole</zorder>
    <zorder>consoleOutput</zorder>
    <zorder>osSelect</zorder>
+   <zorder>progressBar</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

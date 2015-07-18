@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     MainWindow::consoleOut("Started Fusion client updater.");
     ui->consoleOutput->hide();
-    this->setFixedHeight(80);
+    this->setFixedHeight(111);
     ui->osSelect->addItem("Linux");
     ui->osSelect->addItem("Windows");
     chosenOs = 1;
@@ -18,6 +18,119 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::downloadLinuxClient()
+{
+
+    manager = new QNetworkAccessManager;
+    QNetworkRequest request(clientLinuxUrl);
+
+    reply = manager->get(request);
+    ui->updateButton->setEnabled(false);
+    ui->osSelect->setEnabled(false);
+
+    QObject::connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(updateProgressBar(qint64,qint64)));
+
+    QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(linuxFinished(QNetworkReply*)));
+}
+
+void MainWindow::downloadWindowsClient()
+{
+
+    manager = new QNetworkAccessManager;
+    QNetworkRequest request(clientWindowsUrl);
+
+    reply = manager->get(request);
+    ui->updateButton->setEnabled(false);
+    ui->osSelect->setEnabled(false);
+
+    QObject::connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(updateProgressBar(qint64,qint64)));
+
+    QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(windowsFinished(QNetworkReply*)));
+}
+
+void MainWindow::linuxFinished(QNetworkReply *reply)
+{
+
+    reply->deleteLater();
+    reply->ignoreSslErrors();
+
+    if(reply->error())
+    {
+        qDebug() << "[ERROR] Client download reply error.";
+        qDebug() << reply->errorString();
+        ui->updateButton->setEnabled(true);
+        ui->osSelect->setEnabled(true);
+    }
+    else if(reply->url() != clientLinuxUrl)
+    {
+
+        qDebug() << "[ERROR] Client reply URL does not match real client URL.";
+        ui->updateButton->setEnabled(true);
+        ui->osSelect->setEnabled(true);
+        return;
+    }
+    else
+    {
+
+    QByteArray ba = reply->readAll();
+    QFile file (clientLinuxDirectory);
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    out << ba;
+    file.close();
+    ui->progressBar->setMaximum(1);
+    ui->progressBar->setValue(0);
+    MainWindow::consoleOut("Linux client finished downloading.");
+    ui->updateButton->setEnabled(true);
+    ui->osSelect->setEnabled(true);
+    }
+}
+
+void MainWindow::windowsFinished(QNetworkReply *reply)
+{
+
+    reply->deleteLater();
+    reply->ignoreSslErrors();
+
+    if(reply->error())
+    {
+        qDebug() << "[ERROR] Client download reply error.";
+        qDebug() << reply->errorString();
+        ui->updateButton->setEnabled(true);
+        ui->osSelect->setEnabled(true);
+    }
+    else if(reply->url() != clientWindowsUrl)
+    {
+
+        qDebug() << "[ERROR] Client reply URL does not match real client URL.";
+        ui->updateButton->setEnabled(true);
+        ui->osSelect->setEnabled(true);
+        return;
+    }
+    else
+    {
+
+    QByteArray ba = reply->readAll();
+    QFile file (clientWindowsDirectory);
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    out << ba;
+    file.close();
+    ui->progressBar->setMaximum(1);
+    ui->progressBar->setValue(0);
+    MainWindow::consoleOut("Windows client finished downloading.");
+    ui->updateButton->setEnabled(true);
+    ui->osSelect->setEnabled(true);
+    }
+}
+
+void MainWindow::updateProgressBar(qint64 current, qint64 total)
+{
+
+    ui->progressBar->setMaximum(total);
+    ui->progressBar->setValue(current);
 }
 
 void MainWindow::refreshValues()
@@ -113,18 +226,18 @@ void MainWindow::on_updateButton_clicked()
             {
 
                 cUpdater->updateLinuxClient();
+                MainWindow::downloadLinuxClient();
                 ui->updateButton->setText("Update");
-                ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
-                ui->restoreButton->setEnabled(true);
+                MainWindow::refreshValues();
                 MainWindow::consoleOut("Linux client updated.");
             }
         }
         else
         {
 
-            cUpdater->downloadLinuxClient();
+            MainWindow::downloadLinuxClient();
             ui->updateButton->setText("Update");
-            MainWindow::consoleOut("Downloaded linux client.");
+            MainWindow::refreshValues();
         }
     }
     else if (chosenOs == 2)
@@ -143,18 +256,17 @@ void MainWindow::on_updateButton_clicked()
             {
 
                 cUpdater->updateWindowsClient();
+                MainWindow::downloadWindowsClient();
                 ui->updateButton->setText("Update");
-                ui->dVersionLabel->setText(cUpdater->getCRClientVersion());
-                ui->restoreButton->setEnabled(true);
+                MainWindow::refreshValues();
                 MainWindow::consoleOut("Windows client updated.");
             }
         }
         else
         {
 
-            cUpdater->downloadWindowsClient();
+            MainWindow::downloadWindowsClient();
             ui->updateButton->setText("Update");
-            MainWindow::consoleOut("Downloaded Windows client.");
         }
     }
 }
@@ -171,7 +283,7 @@ void MainWindow::on_restoreButton_clicked()
         {
 
             cUpdater->restoreLinuxClient();
-            ui->dVersionLabel->setText(cUpdater->getDLClientLinuxVersion());
+            MainWindow::refreshValues();
             MainWindow::consoleOut("Old linux client restored.");
             MainWindow::refreshValues();
         }
@@ -189,7 +301,7 @@ void MainWindow::on_restoreButton_clicked()
         {
 
             cUpdater->restoreWindowsClient();
-            ui->dVersionLabel->setText(cUpdater->getDLClientWindowsVersion());
+            MainWindow::refreshValues();
             MainWindow::consoleOut("Old windows client restored.");
             MainWindow::refreshValues();
         }
@@ -221,7 +333,7 @@ void MainWindow::on_toggleConsole_clicked()
     {
 
         MainWindow::consoleOut("Showing console.");
-        this->setFixedHeight(219);
+        this->setFixedHeight(250);
         ui->consoleOutput->show();
     }
     else
@@ -229,7 +341,7 @@ void MainWindow::on_toggleConsole_clicked()
 
         MainWindow::consoleOut("Hiding console.");
         ui->consoleOutput->hide();
-        this->setFixedHeight(80);
+        this->setFixedHeight(111);
     }
 }
 
