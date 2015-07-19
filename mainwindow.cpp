@@ -29,6 +29,7 @@ void MainWindow::downloadLinuxClient()
     reply = manager->get(request);
     ui->updateButton->setEnabled(false);
     ui->osSelect->setEnabled(false);
+    ui->restoreButton->setEnabled(false);
 
     QObject::connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(updateProgressBar(qint64,qint64)));
 
@@ -44,6 +45,7 @@ void MainWindow::downloadWindowsClient()
     reply = manager->get(request);
     ui->updateButton->setEnabled(false);
     ui->osSelect->setEnabled(false);
+    ui->restoreButton->setEnabled(false);
 
     QObject::connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(updateProgressBar(qint64,qint64)));
 
@@ -83,8 +85,8 @@ void MainWindow::linuxFinished(QNetworkReply *reply)
     ui->progressBar->setMaximum(1);
     ui->progressBar->setValue(0);
     MainWindow::consoleOut("Linux client finished downloading.");
-    ui->updateButton->setEnabled(true);
     ui->osSelect->setEnabled(true);
+    MainWindow::refreshValues();
     }
 }
 
@@ -121,13 +123,15 @@ void MainWindow::windowsFinished(QNetworkReply *reply)
     ui->progressBar->setMaximum(1);
     ui->progressBar->setValue(0);
     MainWindow::consoleOut("Windows client finished downloading.");
-    ui->updateButton->setEnabled(true);
     ui->osSelect->setEnabled(true);
+    MainWindow::refreshValues();
     }
 }
 
 void MainWindow::updateProgressBar(qint64 current, qint64 total)
 {
+    ui->updateButton->setEnabled(false);
+    ui->restoreButton->setEnabled(false);
 
     ui->progressBar->setMaximum(total);
     ui->progressBar->setValue(current);
@@ -137,6 +141,7 @@ void MainWindow::refreshValues()
 {
 
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+    ui->updateButton->setEnabled(true);
 
     if (chosenOs == 1)
     {
