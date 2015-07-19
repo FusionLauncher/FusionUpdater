@@ -1,7 +1,7 @@
 # FusionClientUpdater
-Build instructions (Linux):
+Build instructions (**Linux**):
 
-Requires: build-essential, qt4-default, git
+**Requires**: **build-essential**, **qt4-default**, **git**
 
 ```
 git clone https://github.com/lolsatbirds/LibFusion
