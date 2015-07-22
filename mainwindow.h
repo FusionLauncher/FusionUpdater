@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QDir>
+#include <QFileDialog>
 
 namespace Ui {
 class MainWindow;
@@ -26,8 +27,9 @@ public:
     ~MainWindow();
     void refreshValues();
     void consoleOut(QString s);
-    void downloadLinuxClient();
-    void downloadWindowsClient();
+    void downloadClient();
+    void updateClient();
+    void restoreClient();
 
 private slots:
 
@@ -43,21 +45,33 @@ private slots:
 
     void on_osSelect_activated(const QString &arg1);
 
-public slots:
+    void on_browseButton_clicked();
 
-    void linuxFinished(QNetworkReply *reply);
-    void windowsFinished(QNetworkReply *reply);
+private slots:
+
+    void replyFinished(QNetworkReply *reply);
+
+    void on_pathText_textChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
     FClientUpdater *cUpdater = new FClientUpdater();
+    QDir *qd;
     int chosenOs; // 1 : Linux | 2 : Windows
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
-    QString clientLinuxDirectory = QDir::currentPath() + "/FusionClient";
-    QString clientWindowsDirectory = QDir::currentPath() + "/FusionClient.exe";
-    QString clientLinuxUrl = "http://70.72.248.199/Resources/FusionClient";
-    QString clientWindowsUrl = "http://70.72.248.199/Resources/FusionClient.exe";
+    QString FcuDirectory = QDir::currentPath();
+    QString linuxClient="/FusionClient";
+    QString windowsClient = "/FusionClient.exe";
+    QString linuxClientUrl = "http://70.72.248.199/Resources/FusionClient";
+    QString windowsClientUrl = "http://70.72.248.199/Resources/FusionClient.exe";
+    QString linuxOldFile = "/FusionClientL.OLD";
+    QString windowsOldFile = "/FusionClientW.OLD";
+    QString restoreFile = "/FusionClient.RESTORE";
+    QString chosenPath;
+
+
+
 
 };
 
