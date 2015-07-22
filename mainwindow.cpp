@@ -22,8 +22,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//Downloads client.
 void MainWindow::downloadClient()
 {
+
+    MainWindow::consoleOut("Attempting to download client...");
 
     manager = new QNetworkAccessManager;
     QNetworkRequest request;
@@ -50,7 +53,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
 
     if(reply->error())
     {
-        qDebug() << "[ERROR] Client download reply error.";
+        MainWindow::consoleOut("[ERROR] Client download reply error.");
         qDebug() << reply->errorString();
         ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
@@ -60,7 +63,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     else if((chosenOs == 1) && (reply->url() != linuxClientUrl))
     {
 
-        qDebug() << "[ERROR] Client reply URL does not match real client URL.";
+        MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
         ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
@@ -69,7 +72,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     else if((chosenOs == 2) && (reply->url() != windowsClientUrl))
     {
 
-        qDebug() << "[ERROR] Client reply URL does not match real client URL.";
+        MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
         ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
@@ -96,6 +99,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     }
 }
 
+//Updates progress bar.
 void MainWindow::updateProgressBar(qint64 current, qint64 total)
 {
     ui->updateButton->setEnabled(false);
@@ -110,7 +114,7 @@ void MainWindow::updateProgressBar(qint64 current, qint64 total)
 void MainWindow::updateClient()
 {
 
-    qDebug() << "Attempting to update client.";
+    MainWindow::consoleOut("Attempting to update client.");
     ui->pathText->setEnabled(false);
 
     //Rename downloaded client.
@@ -118,13 +122,13 @@ void MainWindow::updateClient()
     {
 
         qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
-        qDebug() << "Renamed CURRENT to OLD";
+        MainWindow::consoleOut("Updated linux client.");
     }
     else if (chosenOs == 2)
     {
 
         qd->rename(chosenPath + windowsClient, chosenPath +  windowsOldFile);
-        qDebug() << "Renamed CURRENT to OLD";
+        MainWindow::consoleOut("Updated windows client.");
     }
     MainWindow::refreshValues();
 }
@@ -138,36 +142,30 @@ void MainWindow::restoreClient()
     if (chosenOs == 1)
     {
 
-        qDebug() << "Attempting to restore Linux client.";
+        MainWindow::consoleOut("Attempting to restore Linux client...");
 
         //Rename previous client.
         qd->rename(chosenPath + linuxOldFile, chosenPath + restoreFile);
-        qDebug() << "Renamed OLD to RESTORE.";
 
         //Rename unwanted client.
         qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
-        qDebug() << "Renamed CURRENT to OLD.";
 
         //Rename previous client again.
         qd->rename(chosenPath + restoreFile, chosenPath + linuxClient);
-        qDebug() << "Renamed RESTORE to CURRENT";
     }
     else if (chosenOs == 2)
     {
 
-        qDebug() << "Attempting to restore Linux client.";
+        MainWindow::consoleOut("Attempting to restore Windows client...");
 
         //Rename previous client.
         qd->rename(chosenPath + windowsOldFile, chosenPath + restoreFile);
-        qDebug() << "Renamed OLD to RESTORE.";
 
         //Rename unwanted client.
         qd->rename(chosenPath + windowsClient, chosenPath + windowsOldFile);
-        qDebug() << "Renamed CURRENT to OLD.";
 
         //Rename previous client again.
         qd->rename(chosenPath + restoreFile, chosenPath + windowsClient);
-        qDebug() << "Renamed RESTORE to CURRENT";
     }
     MainWindow::refreshValues();
 }
@@ -182,13 +180,11 @@ void MainWindow::refreshValues()
     if (chosenOs == 1)
     {
 
-        MainWindow::consoleOut("Refreshing values for Linux.");
+        MainWindow::consoleOut("Refreshing values for Linux...");
         ui->dVersionLabel->setText(cUpdater->getDLClientLinuxVersion(chosenPath + linuxClient));
-        MainWindow::consoleOut("No problem with version text.");
 
         if (cUpdater->clientLinuxExists(chosenPath + linuxClient))
         {
-            MainWindow::consoleOut("This if works.");
 
             ui->updateButton->setText("Update");
         }
@@ -213,7 +209,7 @@ void MainWindow::refreshValues()
     else if (chosenOs == 2)
     {
 
-        MainWindow::consoleOut("Refreshing values for Windows.");
+        MainWindow::consoleOut("Refreshing values for Windows...");
         ui->dVersionLabel->setText(cUpdater->getDLClientWindowsVersion(chosenPath + windowsClient));
 
         if (cUpdater->clientWindowsExists(chosenPath + windowsClient))
@@ -251,7 +247,6 @@ void MainWindow::consoleOut(QString s)
 void MainWindow::on_updateButton_clicked()
 {
 
-    MainWindow::consoleOut("Download/Update button clicked.");
     ui->pathText->setEnabled(false);
 
     if (chosenOs == 1)
@@ -321,7 +316,6 @@ void MainWindow::on_updateButton_clicked()
 void MainWindow::on_restoreButton_clicked()
 {
 
-    MainWindow::consoleOut("Restore button clicked.");
     ui->pathText->setEnabled(false);
 
     if (chosenOs == 1)
@@ -368,16 +362,11 @@ void MainWindow::on_restoreButton_clicked()
 void MainWindow::on_refreshButton_clicked()
 {
 
-    MainWindow::consoleOut("Refresh button clicked.");
-
-
     MainWindow::refreshValues();
 }
 
 void MainWindow::on_toggleConsole_clicked()
 {
-
-    MainWindow::consoleOut("Clicked console checkbox.");
 
     if (ui->toggleConsole->isChecked())
     {
@@ -430,11 +419,13 @@ void MainWindow::on_pathText_textChanged(const QString &arg1)
     if ((arg1.isEmpty()) || (arg1.isNull()) )
     {
 
+        ui->pathText->setText(FcuDirectory);
         chosenPath = FcuDirectory;
         MainWindow::refreshValues();
         return;
     }
 
     chosenPath = arg1;
+    MainWindow::consoleOut("Set directory to " + chosenPath);
     MainWindow::refreshValues();
 }
