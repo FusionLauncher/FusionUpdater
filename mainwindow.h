@@ -13,6 +13,7 @@
 #include <QDataStream>
 #include <QDir>
 #include <QFileDialog>
+#include <QMessageBox>
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +31,7 @@ public:
     void downloadClient();
     void updateClient();
     void restoreClient();
+    void checkFiles();
 
 private slots:
 
@@ -56,7 +58,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     FClientUpdater *cUpdater = new FClientUpdater();
-    QDir *qd;
+    QDir *qd = new QDir();
     int chosenOs; // 1 : Linux | 2 : Windows
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
@@ -69,9 +71,11 @@ private:
     QString windowsOldFile = "/FusionClientW.OLD";
     QString restoreFile = "/FusionClient.RESTORE";
     QString chosenPath;
-
-
-
+    QString lVersionFile = "/FVersionL";
+    QString  wVersionFile = "/FVersionW";
+    QString lVersionOldFile = "/FVersionL.OLD";
+    QString  wVersionOldFile = "/FVersionW.OLD";
+    QString versionRestoreFile = "/FVersion.RESTORE";
 
 };
 

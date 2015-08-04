@@ -14,12 +14,58 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pathText->setText(FcuDirectory);
     chosenOs = 1;
     chosenPath = FcuDirectory;
+    MainWindow::checkFiles();
     MainWindow::refreshValues();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+//Make sure version file and client exists.
+void MainWindow::checkFiles()
+{
+
+    //Linux Client exists & Version missing
+    if ((cUpdater->fileExists(chosenPath + linuxClient)) && (!cUpdater->fileExists(chosenPath + lVersionFile)))
+    {
+
+        QMessageBox msg;
+        msg.setText("Missing version file for Linux client. Please run the client again to create a new one.");
+        msg.setIcon(QMessageBox::Warning);
+        msg.exec();
+        MainWindow::consoleOut("Missing version file for Linux client.");
+    }
+
+    //Linux Client missing & Version exists
+    if ((!cUpdater->fileExists(chosenPath + linuxClient)) && (cUpdater->fileExists(chosenPath + lVersionFile)))
+    {
+
+        QFile file(chosenPath + lVersionFile);
+        file.remove();
+        MainWindow::consoleOut("Missing Linux client but version file exists. Removed version file.");
+    }
+
+    //Windows Client exists & Version missing
+    if ((cUpdater->fileExists(chosenPath + windowsClient)) && (!cUpdater->fileExists(chosenPath + wVersionFile)))
+    {
+
+        QMessageBox msg;
+        msg.setText("Missing version file for Windows client. Please run the client again to create a new one.");
+        msg.setIcon(QMessageBox::Warning);
+        msg.exec();
+        MainWindow::consoleOut("Missing version file for Windows client.");
+    }
+
+    //Windows Client missing & Version exists
+    if ((!cUpdater->fileExists(chosenPath + windowsClient)) && (cUpdater->fileExists(chosenPath + wVersionFile)))
+    {
+
+        QFile file(chosenPath + wVersionFile);
+        file.remove();
+        MainWindow::consoleOut("Missing Windows client but version file exists. Removed version file.");
+    }
 }
 
 //Downloads client.
@@ -94,6 +140,8 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     ui->progressBar->setMaximum(1);
     ui->progressBar->setValue(0);
     MainWindow::consoleOut("Client finished downloading.");
+    if (chosenOs == 1) { cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + lVersionFile); }
+    else if (chosenOs == 2) { cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + wVersionFile); }
     ui->osSelect->setEnabled(true);
     MainWindow::refreshValues();
     }
@@ -122,12 +170,14 @@ void MainWindow::updateClient()
     {
 
         qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
+        qd->rename(chosenPath + lVersionFile, chosenPath + lVersionOldFile);
         MainWindow::consoleOut("Updated linux client.");
     }
     else if (chosenOs == 2)
     {
 
         qd->rename(chosenPath + windowsClient, chosenPath +  windowsOldFile);
+        qd->rename(chosenPath + wVersionFile, chosenPath + wVersionOldFile);
         MainWindow::consoleOut("Updated windows client.");
     }
     MainWindow::refreshValues();
@@ -146,12 +196,15 @@ void MainWindow::restoreClient()
 
         //Rename previous client.
         qd->rename(chosenPath + linuxOldFile, chosenPath + restoreFile);
+        qd->rename(chosenPath + lVersionOldFile, chosenPath + versionRestoreFile);
 
         //Rename unwanted client.
         qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
+        qd->rename(chosenPath + lVersionFile, chosenPath + lVersionOldFile);
 
         //Rename previous client again.
         qd->rename(chosenPath + restoreFile, chosenPath + linuxClient);
+        qd->rename(chosenPath + versionRestoreFile, chosenPath + lVersionFile);
     }
     else if (chosenOs == 2)
     {
@@ -160,12 +213,16 @@ void MainWindow::restoreClient()
 
         //Rename previous client.
         qd->rename(chosenPath + windowsOldFile, chosenPath + restoreFile);
+        qd->rename(chosenPath + wVersionOldFile, chosenPath + versionRestoreFile);
+
 
         //Rename unwanted client.
         qd->rename(chosenPath + windowsClient, chosenPath + windowsOldFile);
+        qd->rename(chosenPath + wVersionFile, chosenPath + wVersionOldFile);
 
         //Rename previous client again.
         qd->rename(chosenPath + restoreFile, chosenPath + windowsClient);
+        qd->rename(chosenPath + versionRestoreFile, chosenPath + wVersionFile);
     }
     MainWindow::refreshValues();
 }
@@ -181,9 +238,9 @@ void MainWindow::refreshValues()
     {
 
         MainWindow::consoleOut("Refreshing values for Linux...");
-        ui->dVersionLabel->setText(cUpdater->getDLClientLinuxVersion(chosenPath + linuxClient));
+        ui->dVersionLabel->setText(cUpdater->getDLClientVersion(chosenPath + lVersionFile));
 
-        if (cUpdater->clientLinuxExists(chosenPath + linuxClient))
+        if (cUpdater->fileExists(chosenPath + linuxClient))
         {
 
             ui->updateButton->setText("Update");
@@ -194,7 +251,7 @@ void MainWindow::refreshValues()
             ui->updateButton->setText("Download");
         }
 
-        if (cUpdater->oldClientLinuxExists(chosenPath + linuxOldFile))
+        if (cUpdater->fileExists(chosenPath + linuxOldFile))
         {
 
             ui->restoreButton->setEnabled(true);
@@ -210,9 +267,9 @@ void MainWindow::refreshValues()
     {
 
         MainWindow::consoleOut("Refreshing values for Windows...");
-        ui->dVersionLabel->setText(cUpdater->getDLClientWindowsVersion(chosenPath + windowsClient));
+        ui->dVersionLabel->setText(cUpdater->getDLClientVersion(chosenPath + wVersionFile));
 
-        if (cUpdater->clientWindowsExists(chosenPath + windowsClient))
+        if (cUpdater->fileExists(chosenPath + windowsClient))
         {
 
             ui->updateButton->setText("Update");
@@ -223,7 +280,7 @@ void MainWindow::refreshValues()
             ui->updateButton->setText("Download");
         }
 
-        if (cUpdater->oldClientWindowsExists(chosenPath + windowsOldFile))
+        if (cUpdater->fileExists(chosenPath + windowsOldFile))
         {
 
             ui->restoreButton->setEnabled(true);
@@ -252,10 +309,10 @@ void MainWindow::on_updateButton_clicked()
     if (chosenOs == 1)
     {
 
-        if (cUpdater->clientLinuxExists(chosenPath + linuxClient))
+        if (cUpdater->fileExists(chosenPath + linuxClient))
         {
 
-            if (cUpdater->isCurrentLinuxClient(chosenPath + linuxClient))
+            if (cUpdater->isCurrentClient(chosenPath + lVersionFile))
             {
 
                 MainWindow::consoleOut("Linux client does not need updated.");
@@ -283,10 +340,10 @@ void MainWindow::on_updateButton_clicked()
     else if (chosenOs == 2)
     {
 
-        if (cUpdater->clientWindowsExists(chosenPath + windowsClient))
+        if (cUpdater->fileExists(chosenPath + windowsClient))
         {
 
-            if (cUpdater->isCurrentWindowsClient(chosenPath + windowsClient))
+            if (cUpdater->isCurrentClient(chosenPath + wVersionFile))
             {
 
                 MainWindow::consoleOut("Windows client does not need updated.");
@@ -321,7 +378,7 @@ void MainWindow::on_restoreButton_clicked()
     if (chosenOs == 1)
     {
 
-        if (cUpdater->oldClientLinuxExists(chosenPath + linuxOldFile))
+        if (cUpdater->fileExists(chosenPath + linuxOldFile))
         {
 
             MainWindow::restoreClient();
@@ -340,7 +397,7 @@ void MainWindow::on_restoreButton_clicked()
     else if (chosenOs == 2)
     {
 
-        if (cUpdater->oldClientWindowsExists(chosenPath + windowsOldFile))
+        if (cUpdater->fileExists(chosenPath + windowsOldFile))
         {
 
             MainWindow::restoreClient();
