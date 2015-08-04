@@ -80,6 +80,8 @@ void MainWindow::downloadClient()
     if (chosenOs == 1) { request.setUrl(linuxClientUrl); }
     else if (chosenOs == 2) { request.setUrl(windowsClientUrl); }
 
+    request.setRawHeader("User-Agent", "FCUpdater");
+
     reply = manager->get(request);
     ui->updateButton->setEnabled(false);
     ui->osSelect->setEnabled(false);
@@ -127,15 +129,13 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     else
     {
 
-    QByteArray ba = reply->readAll();
     QFile file;
 
     if (chosenOs == 1) { file.setFileName(chosenPath + linuxClient); }
     else if (chosenOs == 2) { file.setFileName(chosenPath + windowsClient); }
 
     file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
-    out << ba;
+    file.write(reply->readAll());
     file.close();
     ui->progressBar->setMaximum(1);
     ui->progressBar->setValue(0);

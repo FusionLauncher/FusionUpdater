@@ -65,8 +65,8 @@ private:
     QString FcuDirectory = QDir::currentPath();
     QString linuxClient="/FusionClient";
     QString windowsClient = "/FusionClient.exe";
-    QString linuxClientUrl = "http://70.72.248.199/Resources/FusionClient";
-    QString windowsClientUrl = "http://70.72.248.199/Resources/FusionClient.exe";
+    QString linuxClientUrl = "http://projfusion.com/Resources/FusionClient";
+    QString windowsClientUrl = "http://projfusion.com/Resources/FusionClient.exe";
     QString linuxOldFile = "/FusionClientL.OLD";
     QString windowsOldFile = "/FusionClientW.OLD";
     QString restoreFile = "/FusionClient.RESTORE";
