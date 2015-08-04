@@ -233,6 +233,7 @@ void MainWindow::refreshValues()
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
     ui->updateButton->setEnabled(true);
     ui->pathText->setEnabled(true);
+    MainWindow::checkFiles();
 
     if (chosenOs == 1)
     {
