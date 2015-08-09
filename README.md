@@ -4,7 +4,7 @@ Build instructions (**Linux**):
 **Requires**: **build-essential**, **qt4-default**, **git**
 
 ```
-git clone https://github.com/lolsatbirds/LibFusion
+git clone https://github.com/FusionLauncher/LibFusion
 cd LibFusion
 qmake && make
 cd ..
