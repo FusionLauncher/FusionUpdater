@@ -7,8 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     MainWindow::consoleOut("Started Fusion client updater.");
-    ui->consoleOutput->hide();
-    this->setFixedHeight(111);
+ //   ui->consoleOutput->hide();
     ui->osSelect->addItem("Linux");
     ui->osSelect->addItem("Windows");
     ui->pathText->setText(FcuDirectory);
@@ -423,24 +422,7 @@ void MainWindow::on_refreshButton_clicked()
     MainWindow::refreshValues();
 }
 
-void MainWindow::on_toggleConsole_clicked()
-{
 
-    if (ui->toggleConsole->isChecked())
-    {
-
-        MainWindow::consoleOut("Showing console.");
-        this->setFixedHeight(250);
-        ui->consoleOutput->show();
-    }
-    else
-    {
-
-        MainWindow::consoleOut("Hiding console.");
-        ui->consoleOutput->hide();
-        this->setFixedHeight(111);
-    }
-}
 
 void MainWindow::on_osSelect_activated(const QString &arg1)
 {

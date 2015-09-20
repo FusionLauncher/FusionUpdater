@@ -43,7 +43,6 @@ private slots:
 
     void on_refreshButton_clicked();
 
-    void on_toggleConsole_clicked();
 
     void on_osSelect_activated(const QString &arg1);
 
