@@ -19,6 +19,8 @@ namespace Ui {
 class MainWindow;
 }
 
+enum supportedOS {Windows, Linux};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -43,7 +45,6 @@ private slots:
 
     void on_refreshButton_clicked();
 
-
     void on_osSelect_activated(const QString &arg1);
 
     void on_browseButton_clicked();
@@ -57,24 +58,33 @@ private slots:
 private:
     Ui::MainWindow *ui;
     FClientUpdater *cUpdater = new FClientUpdater();
+
+
+    #ifdef _WIN32
+        const supportedOS OS = Windows;
+        QString clientExe = "/FusionClient.exe";
+        QString clientURL = "http://projfusion.com/Resources/FusionClient.exe";
+        QString clientExeOld = "/FusionClientW.OLD";
+    #elif __linux
+        const supportedOS OS = Linux;
+        QString clientExe = "/FusionClient";
+        QString clientURL = "http://projfusion.com/Resources/FusionClient";
+        QString clientExeOld = "/FusionClientL.OLD";
+    #endif
+
+    QString restoreFile = "/FusionClient.RESTORE";
+    QString VersionFile = "/FVersion";
+    QString VersionOldFile = "/FVersion.OLD";
+    QString versionRestoreFile = "/FVersion.RESTORE";
+
+
     QDir *qd = new QDir();
     int chosenOs; // 1 : Linux | 2 : Windows
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
     QString FcuDirectory = QDir::currentPath();
-    QString linuxClient="/FusionClient";
-    QString windowsClient = "/FusionClient.exe";
-    QString linuxClientUrl = "http://projfusion.com/Resources/FusionClient";
-    QString windowsClientUrl = "http://projfusion.com/Resources/FusionClient.exe";
-    QString linuxOldFile = "/FusionClientL.OLD";
-    QString windowsOldFile = "/FusionClientW.OLD";
-    QString restoreFile = "/FusionClient.RESTORE";
     QString chosenPath;
-    QString lVersionFile = "/FVersionL";
-    QString  wVersionFile = "/FVersionW";
-    QString lVersionOldFile = "/FVersionL.OLD";
-    QString  wVersionOldFile = "/FVersionW.OLD";
-    QString versionRestoreFile = "/FVersion.RESTORE";
+
 
 };
 
