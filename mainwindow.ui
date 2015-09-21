@@ -28,23 +28,6 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QComboBox" name="osSelect">
-      <property name="maxVisibleItems">
-       <number>2</number>
-      </property>
-      <property name="maxCount">
-       <number>2</number>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="refreshButton">
-      <property name="text">
-       <string>Refresh</string>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="leftMargin">
@@ -99,6 +82,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="refreshButton">
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
