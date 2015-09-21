@@ -45,11 +45,7 @@ private slots:
 
     void on_refreshButton_clicked();
 
-    void on_osSelect_activated(const QString &arg1);
-
     void on_browseButton_clicked();
-
-private slots:
 
     void replyFinished(QNetworkReply *reply);
 
@@ -57,23 +53,23 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    FClientUpdater *cUpdater = new FClientUpdater();
+    FClientUpdater *cUpdater;
 
 
     #ifdef _WIN32
         const supportedOS OS = Windows;
         QString clientExe = "/FusionClient.exe";
-        QString clientURL = "http://projfusion.com/Resources/FusionClient.exe";
+        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Windows.zip";
         QString clientExeOld = "/FusionClientW.OLD";
     #elif __linux
         const supportedOS OS = Linux;
         QString clientExe = "/FusionClient";
-        QString clientURL = "http://projfusion.com/Resources/FusionClient";
+        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Linux.tar";
         QString clientExeOld = "/FusionClientL.OLD";
     #endif
 
     QString restoreFile = "/FusionClient.RESTORE";
-    QString VersionFile = "/FVersion";
+    QString VersionFile = "/FVersion.txt";
     QString VersionOldFile = "/FVersion.OLD";
     QString versionRestoreFile = "/FVersion.RESTORE";
 

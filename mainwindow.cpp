@@ -8,14 +8,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     MainWindow::consoleOut("Started Fusion client updater.");
- //   ui->consoleOutput->hide();
-    ui->osSelect->addItem("Linux");
-    ui->osSelect->addItem("Windows");
-    ui->pathText->setText(FcuDirectory);
-    ui->pathText->setText(cUpdater->readPath());
-    chosenOs = 1;
-    chosenPath = FcuDirectory;
-    MainWindow::checkFiles();
+    cUpdater = new FClientUpdater();
+    ui->pathText->blockSignals(true); //this will prevent the double fire of refreshValues();
+    ui->pathText->setText(QDir::currentPath());
+    ui->pathText->blockSignals(false);
     MainWindow::refreshValues();
 }
 
@@ -61,7 +57,6 @@ void MainWindow::downloadClient()
 
     reply = manager->get(request);
     ui->updateButton->setEnabled(false);
-    ui->osSelect->setEnabled(false);
     ui->restoreButton->setEnabled(false);
     ui->pathText->setEnabled(false);
 
@@ -80,7 +75,6 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     {
         MainWindow::consoleOut("[ERROR] Client download reply error.");
         qDebug() << reply->errorString();
-        ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
         return;
@@ -89,7 +83,6 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     {
 
         MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
-        ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
         return;
@@ -111,7 +104,6 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + VersionFile);
 
 
-    ui->osSelect->setEnabled(true);
     MainWindow::refreshValues();
     }
 }
@@ -169,13 +161,15 @@ void MainWindow::restoreClient()
 
 void MainWindow::refreshValues()
 {
+    MainWindow::consoleOut("Refreshing values for Client...");
     ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+
     ui->updateButton->setEnabled(true);
     ui->pathText->setEnabled(true);
+
     MainWindow::checkFiles();
 
-    MainWindow::consoleOut("Refreshing values for Client...");
-    ui->dVersionLabel->setText(cUpdater->getDLClientVersion(chosenPath + VersionFile));
+    ui->dVersionLabel->setText(cUpdater->getDLClientVersion(LibFusion::getWorkingDir().absolutePath() + VersionFile));
 
     if (cUpdater->fileExists(chosenPath + clientExe))
         ui->updateButton->setText("Update");
@@ -186,6 +180,8 @@ void MainWindow::refreshValues()
         ui->restoreButton->setEnabled(true);
     else
         ui->restoreButton->setEnabled(false);
+
+    MainWindow::consoleOut("Refreshing done.");
 }
 
 void MainWindow::consoleOut(QString s)
@@ -259,31 +255,6 @@ void MainWindow::on_refreshButton_clicked()
     MainWindow::refreshValues();
 }
 
-
-
-void MainWindow::on_osSelect_activated(const QString &arg1)
-{
-
-    if (arg1 == "Linux")
-    {
-
-        MainWindow::consoleOut("Chose Linux.");
-        chosenOs = 1;
-        MainWindow::refreshValues();
-    }
-    else if (arg1 == "Windows")
-    {
-
-        MainWindow::consoleOut("Chose Windows.");
-        chosenOs = 2;
-        MainWindow::refreshValues();
-    }
-    else
-    {
-
-        MainWindow::consoleOut("Erros choosing OS. Try again.");
-    }
-}
 
 void MainWindow::on_browseButton_clicked()
 {
