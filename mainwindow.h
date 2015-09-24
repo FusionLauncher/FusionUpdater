@@ -59,7 +59,7 @@ private:
     #ifdef _WIN32
         const supportedOS OS = Windows;
         QString clientExe = "/FusionClient.exe";
-        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Windows.zip";
+        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionLauncher_Windows.exe";
         QString clientExeOld = "/FusionClientW.OLD";
     #elif __linux
         const supportedOS OS = Linux;
