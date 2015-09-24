@@ -2,6 +2,10 @@
 #include "ui_mainwindow.h"
 #include "libfusion.h"
 
+#include "qdesktopservices.h"
+
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -10,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     MainWindow::consoleOut("Started Fusion client updater.");
     cUpdater = new FClientUpdater();
     ui->pathText->blockSignals(true); //this will prevent the double fire of refreshValues();
-    ui->pathText->setText(QDir::currentPath());
+    ui->pathText->setText(cUpdater->readPath());
+    chosenPath = cUpdater->readPath();
     ui->pathText->blockSignals(false);
     MainWindow::refreshValues();
 }
@@ -90,21 +95,30 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     else
     {
 
-    QFile file;
+        QFile file;
 
-    file.setFileName(chosenPath + clientExe);
+        if(OS==Windows)
+            file.setFileName(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QDir::separator() + "FusionLauncher.exe");
+        else
+            file.setFileName(chosenPath + clientExe);
 
-    file.open(QIODevice::WriteOnly);
-    file.write(reply->readAll());
-    file.close();
-    ui->progressBar->setMaximum(1);
-    ui->progressBar->setValue(0);
-    MainWindow::consoleOut("Client finished downloading.");
-
-    cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + VersionFile);
+    if(file.exists())
+        file.remove();
 
 
-    MainWindow::refreshValues();
+        file.open(QIODevice::WriteOnly);
+        file.write(reply->readAll());
+        file.close();
+        ui->progressBar->setMaximum(1);
+        ui->progressBar->setValue(0);
+        MainWindow::consoleOut("Client finished downloading.");
+
+
+        if(OS==Windows)
+            QDesktopServices::openUrl(QUrl("file:///" + file.fileName(), QUrl::TolerantMode) );
+
+
+        MainWindow::refreshValues();
     }
 }
 
@@ -161,15 +175,21 @@ void MainWindow::restoreClient()
 
 void MainWindow::refreshValues()
 {
-    MainWindow::consoleOut("Refreshing values for Client...");
-    ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+    MainWindow::consoleOut("Getting latest Client Version...");
+    online = cUpdater->getCRClientVersion();
+    if(online.Build + online.Minor + online.Major == 0)
+        return;
+
+    ui->cVersionLabel->setText(cUpdater->VersionToStr(online));
 
     ui->updateButton->setEnabled(true);
     ui->pathText->setEnabled(true);
 
     MainWindow::checkFiles();
+    MainWindow::consoleOut("Read Clientversion from " + LibFusion::getWorkingDir().absolutePath() + VersionFile);
 
-    ui->dVersionLabel->setText(cUpdater->getDLClientVersion(LibFusion::getWorkingDir().absolutePath() + VersionFile));
+    installed = cUpdater->getDLClientVersion(LibFusion::getWorkingDir().absolutePath() + VersionFile);
+    ui->dVersionLabel->setText(cUpdater->VersionToStr(installed));
 
     if (cUpdater->fileExists(chosenPath + clientExe))
         ui->updateButton->setText("Update");
@@ -181,47 +201,33 @@ void MainWindow::refreshValues()
     else
         ui->restoreButton->setEnabled(false);
 
+
     MainWindow::consoleOut("Refreshing done.");
 }
 
 void MainWindow::consoleOut(QString s)
 {
-
     qDebug() << "["+ QTime::currentTime().toString() + "] " + s;
     ui->consoleOutput->appendPlainText("[" + QTime::currentTime().toString() + "] " + s + "\n");
 }
 
 void MainWindow::on_updateButton_clicked()
 {
-
     ui->pathText->setEnabled(false);
 
-
-    if (cUpdater->fileExists(chosenPath + clientExe))
+    if (installed==online && online.initialized)
     {
-        if (cUpdater->isCurrentClient(chosenPath + VersionFile))
-        {
-            MainWindow::consoleOut("Client does not need updated.");
-            MainWindow::refreshValues();
-            return;
-        }
-        else
-        {
-            MainWindow::updateClient();
-            MainWindow::downloadClient();
-            ui->updateButton->setText("Update");
-            MainWindow::refreshValues();
-            MainWindow::consoleOut("Client updated.");
-        }
+        MainWindow::consoleOut("Client does not need updated.");
+    }
+    else if (!online.initialized)
+    {
+        MainWindow::consoleOut("Couldn't get Online-Version!");
     }
     else
     {
         MainWindow::downloadClient();
-        ui->updateButton->setText("Update");
-        MainWindow::refreshValues();
+        MainWindow::consoleOut("Client updated.");
     }
-
-
 }
 
 void MainWindow::on_restoreButton_clicked()
@@ -240,7 +246,6 @@ void MainWindow::on_restoreButton_clicked()
     }
     else
     {
-
         MainWindow::consoleOut("No old client.");
         MainWindow::refreshValues();
         return;

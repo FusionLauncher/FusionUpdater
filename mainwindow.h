@@ -75,11 +75,14 @@ private:
 
 
     QDir *qd = new QDir();
-    int chosenOs; // 1 : Linux | 2 : Windows
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
     QString FcuDirectory = QDir::currentPath();
     QString chosenPath;
+
+    FusionVersion installed;
+    FusionVersion online;
+
 
 
 };
