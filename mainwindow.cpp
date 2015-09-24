@@ -98,7 +98,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
         QFile file;
 
         if(OS==Windows)
-            file.setFileName(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QDir::separator() + "FusionLauncher.exe");
+            file.setFileName(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/FusionLauncher.exe");
         else
             file.setFileName(chosenPath + clientExe);
 
@@ -114,8 +114,11 @@ void MainWindow::replyFinished(QNetworkReply *reply)
         MainWindow::consoleOut("Client finished downloading.");
 
 
-        if(OS==Windows)
-            QDesktopServices::openUrl(QUrl("file:///" + file.fileName(), QUrl::TolerantMode) );
+        if(OS==Windows) {
+            bool launch = QDesktopServices::openUrl(QUrl("file:///" + file.fileName(), QUrl::TolerantMode) );
+            if(launch)
+                this->close();
+        }
 
 
         MainWindow::refreshValues();
