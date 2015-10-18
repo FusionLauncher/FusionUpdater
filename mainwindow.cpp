@@ -1,5 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "libfusion.h"
+
+#include "qdesktopservices.h"
+
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -7,14 +12,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     MainWindow::consoleOut("Started Fusion client updater.");
-    ui->consoleOutput->hide();
-    this->setFixedHeight(111);
-    ui->osSelect->addItem("Linux");
-    ui->osSelect->addItem("Windows");
-    ui->pathText->setText(FcuDirectory);
-    chosenOs = 1;
-    chosenPath = FcuDirectory;
-    MainWindow::checkFiles();
+    cUpdater = new FClientUpdater();
+    ui->pathText->blockSignals(true); //this will prevent the double fire of refreshValues();
+    ui->pathText->setText(cUpdater->readPath());
+    chosenPath = cUpdater->readPath();
+    ui->pathText->blockSignals(false);
     MainWindow::refreshValues();
 }
 
@@ -26,45 +28,22 @@ MainWindow::~MainWindow()
 //Make sure version file and client exists.
 void MainWindow::checkFiles()
 {
-
-    //Linux Client exists & Version missing
-    if ((cUpdater->fileExists(chosenPath + linuxClient)) && (!cUpdater->fileExists(chosenPath + lVersionFile)))
+    //Client exists & Version missing
+    if ((cUpdater->fileExists(chosenPath + clientExe)) && (!cUpdater->fileExists(LibFusion::getWorkingDir().absolutePath() + VersionFile)))
     {
-
         QMessageBox msg;
-        msg.setText("Missing version file for Linux client. Please run the client again to create a new one.");
+        msg.setText("Missing version file for client. Please run the client again to create a new one.");
         msg.setIcon(QMessageBox::Warning);
         msg.exec();
-        MainWindow::consoleOut("Missing version file for Linux client.");
+        MainWindow::consoleOut("Missing version file for client.");
     }
 
-    //Linux Client missing & Version exists
-    if ((!cUpdater->fileExists(chosenPath + linuxClient)) && (cUpdater->fileExists(chosenPath + lVersionFile)))
+    //Client missing & Version exists
+    if ((!cUpdater->fileExists(chosenPath + clientExe)) && (cUpdater->fileExists(LibFusion::getWorkingDir().absolutePath() + VersionFile)))
     {
-
-        QFile file(chosenPath + lVersionFile);
+        QFile file(chosenPath + VersionFile);
         file.remove();
-        MainWindow::consoleOut("Missing Linux client but version file exists. Removed version file.");
-    }
-
-    //Windows Client exists & Version missing
-    if ((cUpdater->fileExists(chosenPath + windowsClient)) && (!cUpdater->fileExists(chosenPath + wVersionFile)))
-    {
-
-        QMessageBox msg;
-        msg.setText("Missing version file for Windows client. Please run the client again to create a new one.");
-        msg.setIcon(QMessageBox::Warning);
-        msg.exec();
-        MainWindow::consoleOut("Missing version file for Windows client.");
-    }
-
-    //Windows Client missing & Version exists
-    if ((!cUpdater->fileExists(chosenPath + windowsClient)) && (cUpdater->fileExists(chosenPath + wVersionFile)))
-    {
-
-        QFile file(chosenPath + wVersionFile);
-        file.remove();
-        MainWindow::consoleOut("Missing Windows client but version file exists. Removed version file.");
+        MainWindow::consoleOut("Missing client but version file exists. Removed version file.");
     }
 }
 
@@ -77,14 +56,12 @@ void MainWindow::downloadClient()
     manager = new QNetworkAccessManager;
     QNetworkRequest request;
 
-    if (chosenOs == 1) { request.setUrl(linuxClientUrl); }
-    else if (chosenOs == 2) { request.setUrl(windowsClientUrl); }
+    request.setUrl(clientURL);
 
     request.setRawHeader("User-Agent", "FCUpdater");
 
     reply = manager->get(request);
     ui->updateButton->setEnabled(false);
-    ui->osSelect->setEnabled(false);
     ui->restoreButton->setEnabled(false);
     ui->pathText->setEnabled(false);
 
@@ -103,25 +80,14 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     {
         MainWindow::consoleOut("[ERROR] Client download reply error.");
         qDebug() << reply->errorString();
-        ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
         return;
     }
-    else if((chosenOs == 1) && (reply->url() != linuxClientUrl))
+    else if(reply->url() != clientURL)
     {
 
         MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
-        ui->osSelect->setEnabled(true);
-        MainWindow::refreshValues();
-        ui->progressBar->setValue(0);
-        return;
-    }
-    else if((chosenOs == 2) && (reply->url() != windowsClientUrl))
-    {
-
-        MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
-        ui->osSelect->setEnabled(true);
         MainWindow::refreshValues();
         ui->progressBar->setValue(0);
         return;
@@ -129,21 +95,33 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     else
     {
 
-    QFile file;
+        QFile file;
 
-    if (chosenOs == 1) { file.setFileName(chosenPath + linuxClient); }
-    else if (chosenOs == 2) { file.setFileName(chosenPath + windowsClient); }
+        if(OS==Windows)
+            file.setFileName(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/FusionLauncher.exe");
+        else
+            file.setFileName(chosenPath + clientExe);
 
-    file.open(QIODevice::WriteOnly);
-    file.write(reply->readAll());
-    file.close();
-    ui->progressBar->setMaximum(1);
-    ui->progressBar->setValue(0);
-    MainWindow::consoleOut("Client finished downloading.");
-    if (chosenOs == 1) { cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + lVersionFile); }
-    else if (chosenOs == 2) { cUpdater->writeVersion(cUpdater->getCRClientVersion(), chosenPath + wVersionFile); }
-    ui->osSelect->setEnabled(true);
-    MainWindow::refreshValues();
+    if(file.exists())
+        file.remove();
+
+
+        file.open(QIODevice::WriteOnly);
+        file.write(reply->readAll());
+        file.close();
+        ui->progressBar->setMaximum(1);
+        ui->progressBar->setValue(0);
+        MainWindow::consoleOut("Client finished downloading.");
+
+
+        if(OS==Windows) {
+            bool launch = QDesktopServices::openUrl(QUrl("file:///" + file.fileName(), QUrl::TolerantMode) );
+            if(launch)
+                this->close();
+        }
+
+
+        MainWindow::refreshValues();
     }
 }
 
@@ -166,20 +144,11 @@ void MainWindow::updateClient()
     ui->pathText->setEnabled(false);
 
     //Rename downloaded client.
-    if (chosenOs == 1)
-    {
+    qd->rename(chosenPath + clientExe, chosenPath + clientExeOld);
+    qd->rename(chosenPath + VersionFile, chosenPath + VersionOldFile);
+    MainWindow::consoleOut("Updated client.");
 
-        qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
-        qd->rename(chosenPath + lVersionFile, chosenPath + lVersionOldFile);
-        MainWindow::consoleOut("Updated linux client.");
-    }
-    else if (chosenOs == 2)
-    {
 
-        qd->rename(chosenPath + windowsClient, chosenPath +  windowsOldFile);
-        qd->rename(chosenPath + wVersionFile, chosenPath + wVersionOldFile);
-        MainWindow::consoleOut("Updated windows client.");
-    }
     MainWindow::refreshValues();
 }
 
@@ -189,185 +158,78 @@ void MainWindow::restoreClient()
 
     ui->pathText->setEnabled(false);
 
-    if (chosenOs == 1)
-    {
 
-        MainWindow::consoleOut("Attempting to restore Linux client...");
+    MainWindow::consoleOut("Attempting to restore client...");
 
-        //Rename previous client.
-        qd->rename(chosenPath + linuxOldFile, chosenPath + restoreFile);
-        qd->rename(chosenPath + lVersionOldFile, chosenPath + versionRestoreFile);
+    //Rename previous client.
+    qd->rename(chosenPath + clientExeOld, chosenPath + restoreFile);
+    qd->rename(chosenPath + VersionOldFile, chosenPath + versionRestoreFile);
 
-        //Rename unwanted client.
-        qd->rename(chosenPath + linuxClient, chosenPath + linuxOldFile);
-        qd->rename(chosenPath + lVersionFile, chosenPath + lVersionOldFile);
+    //Rename unwanted client.
+    qd->rename(chosenPath + clientExe, chosenPath + clientExeOld);
+    qd->rename(chosenPath + VersionFile, chosenPath + VersionOldFile);
 
-        //Rename previous client again.
-        qd->rename(chosenPath + restoreFile, chosenPath + linuxClient);
-        qd->rename(chosenPath + versionRestoreFile, chosenPath + lVersionFile);
-    }
-    else if (chosenOs == 2)
-    {
+    //Rename previous client again.
+    qd->rename(chosenPath + restoreFile, chosenPath + clientExe);
+    qd->rename(chosenPath + versionRestoreFile, chosenPath + VersionFile);
 
-        MainWindow::consoleOut("Attempting to restore Windows client...");
-
-        //Rename previous client.
-        qd->rename(chosenPath + windowsOldFile, chosenPath + restoreFile);
-        qd->rename(chosenPath + wVersionOldFile, chosenPath + versionRestoreFile);
-
-
-        //Rename unwanted client.
-        qd->rename(chosenPath + windowsClient, chosenPath + windowsOldFile);
-        qd->rename(chosenPath + wVersionFile, chosenPath + wVersionOldFile);
-
-        //Rename previous client again.
-        qd->rename(chosenPath + restoreFile, chosenPath + windowsClient);
-        qd->rename(chosenPath + versionRestoreFile, chosenPath + wVersionFile);
-    }
     MainWindow::refreshValues();
 }
 
 void MainWindow::refreshValues()
 {
+    MainWindow::consoleOut("Getting latest Client Version...");
+    online = cUpdater->getCRClientVersion();
+    if(online.Build + online.Minor + online.Major == 0)
+        return;
 
-    ui->cVersionLabel->setText(cUpdater->getCRClientVersion());
+    ui->cVersionLabel->setText(cUpdater->VersionToStr(online));
+
     ui->updateButton->setEnabled(true);
     ui->pathText->setEnabled(true);
+
     MainWindow::checkFiles();
+    MainWindow::consoleOut("Read Clientversion from " + LibFusion::getWorkingDir().absolutePath() + VersionFile);
 
-    if (chosenOs == 1)
-    {
+    installed = cUpdater->getDLClientVersion(LibFusion::getWorkingDir().absolutePath() + VersionFile);
+    ui->dVersionLabel->setText(cUpdater->VersionToStr(installed));
 
-        MainWindow::consoleOut("Refreshing values for Linux...");
-        ui->dVersionLabel->setText(cUpdater->getDLClientVersion(chosenPath + lVersionFile));
+    if (cUpdater->fileExists(chosenPath + clientExe))
+        ui->updateButton->setText("Update");
+    else
+        ui->updateButton->setText("Download");
 
-        if (cUpdater->fileExists(chosenPath + linuxClient))
-        {
+    if (cUpdater->fileExists(chosenPath + clientExeOld))
+        ui->restoreButton->setEnabled(true);
+    else
+        ui->restoreButton->setEnabled(false);
 
-            ui->updateButton->setText("Update");
-        }
-        else
-        {
 
-            ui->updateButton->setText("Download");
-        }
-
-        if (cUpdater->fileExists(chosenPath + linuxOldFile))
-        {
-
-            ui->restoreButton->setEnabled(true);
-        }
-        else
-        {
-
-            ui->restoreButton->setEnabled(false);
-        }
-    }
-
-    else if (chosenOs == 2)
-    {
-
-        MainWindow::consoleOut("Refreshing values for Windows...");
-        ui->dVersionLabel->setText(cUpdater->getDLClientVersion(chosenPath + wVersionFile));
-
-        if (cUpdater->fileExists(chosenPath + windowsClient))
-        {
-
-            ui->updateButton->setText("Update");
-        }
-        else
-        {
-
-            ui->updateButton->setText("Download");
-        }
-
-        if (cUpdater->fileExists(chosenPath + windowsOldFile))
-        {
-
-            ui->restoreButton->setEnabled(true);
-        }
-        else
-        {
-
-            ui->restoreButton->setEnabled(false);
-        }
-    }
-
+    MainWindow::consoleOut("Refreshing done.");
 }
 
 void MainWindow::consoleOut(QString s)
 {
-
     qDebug() << "["+ QTime::currentTime().toString() + "] " + s;
     ui->consoleOutput->appendPlainText("[" + QTime::currentTime().toString() + "] " + s + "\n");
 }
 
 void MainWindow::on_updateButton_clicked()
 {
-
     ui->pathText->setEnabled(false);
 
-    if (chosenOs == 1)
+    if (installed==online && online.initialized)
     {
-
-        if (cUpdater->fileExists(chosenPath + linuxClient))
-        {
-
-            if (cUpdater->isCurrentClient(chosenPath + lVersionFile))
-            {
-
-                MainWindow::consoleOut("Linux client does not need updated.");
-                MainWindow::refreshValues();
-                return;
-            }
-            else
-            {
-
-                MainWindow::updateClient();
-                MainWindow::downloadClient();
-                ui->updateButton->setText("Update");
-                MainWindow::refreshValues();
-                MainWindow::consoleOut("Linux client updated.");
-            }
-        }
-        else
-        {
-
-            MainWindow::downloadClient();
-            ui->updateButton->setText("Update");
-            MainWindow::refreshValues();
-        }
+        MainWindow::consoleOut("Client does not need updated.");
     }
-    else if (chosenOs == 2)
+    else if (!online.initialized)
     {
-
-        if (cUpdater->fileExists(chosenPath + windowsClient))
-        {
-
-            if (cUpdater->isCurrentClient(chosenPath + wVersionFile))
-            {
-
-                MainWindow::consoleOut("Windows client does not need updated.");
-                MainWindow::refreshValues();
-                return;
-            }
-            else
-            {
-
-                MainWindow::updateClient();
-                MainWindow::downloadClient();
-                ui->updateButton->setText("Update");
-                MainWindow::refreshValues();
-                MainWindow::consoleOut("Windows client updated.");
-            }
-        }
-        else
-        {
-
-            MainWindow::downloadClient();
-            ui->updateButton->setText("Update");
-            MainWindow::refreshValues();
-        }
+        MainWindow::consoleOut("Couldn't get Online-Version!");
+    }
+    else
+    {
+        MainWindow::downloadClient();
+        MainWindow::consoleOut("Client updated.");
     }
 }
 
@@ -376,44 +238,22 @@ void MainWindow::on_restoreButton_clicked()
 
     ui->pathText->setEnabled(false);
 
-    if (chosenOs == 1)
+
+    if (cUpdater->fileExists(chosenPath + clientExeOld))
     {
 
-        if (cUpdater->fileExists(chosenPath + linuxOldFile))
-        {
-
-            MainWindow::restoreClient();
-            MainWindow::refreshValues();
-            MainWindow::consoleOut("Old linux client restored.");
-            MainWindow::refreshValues();
-        }
-        else
-        {
-
-            MainWindow::consoleOut("No old linux client.");
-            MainWindow::refreshValues();
-            return;
-        }
+        MainWindow::restoreClient();
+        MainWindow::refreshValues();
+        MainWindow::consoleOut("Old client restored.");
+        MainWindow::refreshValues();
     }
-    else if (chosenOs == 2)
+    else
     {
-
-        if (cUpdater->fileExists(chosenPath + windowsOldFile))
-        {
-
-            MainWindow::restoreClient();
-            MainWindow::refreshValues();
-            MainWindow::consoleOut("Old windows client restored.");
-            MainWindow::refreshValues();
-        }
-        else
-        {
-
-            MainWindow::consoleOut("No old windows client.");
-            MainWindow::refreshValues();
-            return;
-        }
+        MainWindow::consoleOut("No old client.");
+        MainWindow::refreshValues();
+        return;
     }
+
 
 }
 
@@ -423,48 +263,6 @@ void MainWindow::on_refreshButton_clicked()
     MainWindow::refreshValues();
 }
 
-void MainWindow::on_toggleConsole_clicked()
-{
-
-    if (ui->toggleConsole->isChecked())
-    {
-
-        MainWindow::consoleOut("Showing console.");
-        this->setFixedHeight(250);
-        ui->consoleOutput->show();
-    }
-    else
-    {
-
-        MainWindow::consoleOut("Hiding console.");
-        ui->consoleOutput->hide();
-        this->setFixedHeight(111);
-    }
-}
-
-void MainWindow::on_osSelect_activated(const QString &arg1)
-{
-
-    if (arg1 == "Linux")
-    {
-
-        MainWindow::consoleOut("Chose Linux.");
-        chosenOs = 1;
-        MainWindow::refreshValues();
-    }
-    else if (arg1 == "Windows")
-    {
-
-        MainWindow::consoleOut("Chose Windows.");
-        chosenOs = 2;
-        MainWindow::refreshValues();
-    }
-    else
-    {
-
-        MainWindow::consoleOut("Erros choosing OS. Try again.");
-    }
-}
 
 void MainWindow::on_browseButton_clicked()
 {
