@@ -28,11 +28,41 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    /**
+     * @brief refreshValues Will read the Version from both the Local Client and the Web-Api
+     *
+     */
     void refreshValues();
+
+    /**
+     * @brief consoleOut Append a String to the Console in the MainWindow
+     *
+     * @param s This String will be appended to the Console
+     */
     void consoleOut(QString s);
+
+    /**
+     * @brief restoreClient Restore the previous version of FusionLauncher.exe
+     *
+     * @todo This needs to replace all Files, like the lib, CLI and Updater too.
+     */
     void downloadClient();
-    void updateClient();
+
+
+    /**
+     * @brief restoreClient Restore the previous version of FusionLauncher.exe
+     *
+     * @todo This needs to replace all Files, like the lib, CLI and Updater too.
+     */
     void restoreClient();
+
+    /**
+     * @brief checkFiles Will check if neccessary files for Update exists
+     *  - Version File local
+     *  - Client File local
+     *  Will Show a Message-Dialog if a file does not exists.
+     */
     void checkFiles();
 
 private slots:

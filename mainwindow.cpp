@@ -25,7 +25,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//Make sure version file and client exists.
+
 void MainWindow::checkFiles()
 {
     //Client exists & Version missing
@@ -47,7 +47,7 @@ void MainWindow::checkFiles()
     }
 }
 
-//Downloads client.
+
 void MainWindow::downloadClient()
 {
 
@@ -125,7 +125,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     }
 }
 
-//Updates progress bar.
+
 void MainWindow::updateProgressBar(qint64 current, qint64 total)
 {
     ui->updateButton->setEnabled(false);
@@ -136,23 +136,7 @@ void MainWindow::updateProgressBar(qint64 current, qint64 total)
     ui->progressBar->setValue(current);
 }
 
-//Replaces downloaded client with current client.
-void MainWindow::updateClient()
-{
 
-    MainWindow::consoleOut("Attempting to update client.");
-    ui->pathText->setEnabled(false);
-
-    //Rename downloaded client.
-    qd->rename(chosenPath + clientExe, chosenPath + clientExeOld);
-    qd->rename(chosenPath + VersionFile, chosenPath + VersionOldFile);
-    MainWindow::consoleOut("Updated client.");
-
-
-    MainWindow::refreshValues();
-}
-
-//Restores previous client.
 void MainWindow::restoreClient()
 {
 
