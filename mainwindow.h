@@ -30,35 +30,37 @@ public:
     ~MainWindow();
 
     /**
-     * @brief refreshValues Will read the Version from both the Local Client and the Web-Api
+     * @brief Will read the Version from both the Local Client and the Web-Api
      *
      */
     void refreshValues();
 
     /**
-     * @brief consoleOut Append a String to the Console in the MainWindow
+     * @brief Append a String to the Console in the MainWindow
      *
      * @param s This String will be appended to the Console
      */
     void consoleOut(QString s);
 
     /**
-     * @brief restoreClient Restore the previous version of FusionLauncher.exe
+     * @brief Restore the previous version of FusionLauncher.exe
      *
+     * @param clientAddr URL of the Client, which should be downloaded.
      * @todo This needs to replace all Files, like the lib, CLI and Updater too.
      */
-    void downloadClient();
+    void downloadClient(QUrl clientAddr);
 
 
     /**
-     * @brief restoreClient Restore the previous version of FusionLauncher.exe
+     * @brief Restore the previous version of FusionLauncher.exe
      *
      * @todo This needs to replace all Files, like the lib, CLI and Updater too.
      */
     void restoreClient();
 
     /**
-     * @brief checkFiles Will check if neccessary files for Update exists
+     * @brief Will check if neccessary files for Update exists
+     *
      *  - Version File local
      *  - Client File local
      *  Will Show a Message-Dialog if a file does not exists.
@@ -92,10 +94,12 @@ private:
         const supportedOS OS = Windows;
         const QString clientExe = "/FusionClient.exe";
         const QUrl clientURL = QUrl(serverURL + "/latest/FusionLauncher_Windows.exe");
+        const QUrl nightlyClientURL = QUrl(serverURL + "/Nightly/FusionLauncher_Win_Nightly.exe");
     #elif __linux
         const supportedOS OS = Linux;
         const QString clientExe = "/FusionClient";
         const QUrl clientURL = QUrl(serverURL + "/latest/FusionClient_Linux.tar");
+        const QUrl nightlyClientURL;
     #endif
 
     const QUrl stableVersionFile = QUrl(serverURL + "/version.txt");
