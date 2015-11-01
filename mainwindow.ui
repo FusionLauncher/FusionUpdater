@@ -141,6 +141,13 @@
         <number>0</number>
        </property>
        <item>
+        <widget class="QCheckBox" name="cb_useNightly">
+         <property name="text">
+          <string>Use Testversions</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
