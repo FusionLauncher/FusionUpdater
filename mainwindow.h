@@ -88,20 +88,20 @@ private:
 
     #ifdef _WIN32
         const supportedOS OS = Windows;
-        QString clientExe = "/FusionClient.exe";
-        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionLauncher_Windows.exe";
-        QString clientExeOld = "/FusionClientW.OLD";
+        const QString clientExe = "/FusionClient.exe";
+        const QString clientURL = "http://projfusion.com/files/Releases/latest/FusionLauncher_Windows.exe";
     #elif __linux
         const supportedOS OS = Linux;
-        QString clientExe = "/FusionClient";
-        QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Linux.tar";
-        QString clientExeOld = "/FusionClientL.OLD";
+        const QString clientExe = "/FusionClient";
+        const QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Linux.tar";
     #endif
 
-    QString restoreFile = "/FusionClient.RESTORE";
-    QString VersionFile = "/FVersion.txt";
-    QString VersionOldFile = "/FVersion.OLD";
-    QString versionRestoreFile = "/FVersion.RESTORE";
+    const QString nightlyPath = "http://projfusion.com/files/Releases/nightly/";
+    const QString restoreFile = "/FusionClient.RESTORE";
+    const QString VersionFile = "/FVersion.txt";
+    const QString VersionOldFile = "/FVersion.OLD";
+    const QString clientExeOld = "/FusionClient.OLD";
+    const QString versionRestoreFile = "/FVersion.RESTORE";
 
 
     QDir *qd = new QDir();
