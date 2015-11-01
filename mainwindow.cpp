@@ -18,6 +18,11 @@ MainWindow::MainWindow(QWidget *parent) :
     chosenPath = cUpdater->readPath();
     ui->pathText->blockSignals(false);
     MainWindow::refreshValues();
+
+
+#ifdef __linux
+    ui->cb_useNightly->setEnabled(false);
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -48,7 +53,7 @@ void MainWindow::checkFiles()
 }
 
 
-void MainWindow::downloadClient()
+void MainWindow::downloadClient(QUrl clientAddr)
 {
 
     MainWindow::consoleOut("Attempting to download client...");
@@ -56,7 +61,7 @@ void MainWindow::downloadClient()
     manager = new QNetworkAccessManager;
     QNetworkRequest request;
 
-    request.setUrl(clientURL);
+    request.setUrl(clientAddr);
 
     request.setRawHeader("User-Agent", "FCUpdater");
 
@@ -163,7 +168,17 @@ void MainWindow::restoreClient()
 void MainWindow::refreshValues()
 {
     MainWindow::consoleOut("Getting latest Client Version...");
-    online = cUpdater->getCRClientVersion();
+    VersionCheckResult vcr_online;
+    if(ui->cb_useNightly->checkState())
+        vcr_online = cUpdater->getCRClientVersion(stableVersionFile);
+    else
+        vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile);
+
+    if(vcr_online.error != "NoError"){
+        consoleOut(vcr_online.error);
+        return;
+    }
+
     if(online.Build + online.Minor + online.Major == 0)
         return;
 
@@ -212,7 +227,11 @@ void MainWindow::on_updateButton_clicked()
     }
     else
     {
-        MainWindow::downloadClient();
+        if(ui->cb_useNightly->checkState())
+            MainWindow::downloadClient(nightlyClientURL);
+        else
+            MainWindow::downloadClient(clientURL);
+
         MainWindow::consoleOut("Client updated.");
     }
 }
