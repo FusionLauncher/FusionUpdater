@@ -86,17 +86,21 @@ private:
     FClientUpdater *cUpdater;
 
 
+    const QString serverURL = "http://projfusion.com/files/Releases";
+
     #ifdef _WIN32
         const supportedOS OS = Windows;
         const QString clientExe = "/FusionClient.exe";
-        const QString clientURL = "http://projfusion.com/files/Releases/latest/FusionLauncher_Windows.exe";
+        const QUrl clientURL = QUrl(serverURL + "/latest/FusionLauncher_Windows.exe");
     #elif __linux
         const supportedOS OS = Linux;
         const QString clientExe = "/FusionClient";
-        const QString clientURL = "http://projfusion.com/files/Releases/latest/FusionClient_Linux.tar";
+        const QUrl clientURL = QUrl(serverURL + "/latest/FusionClient_Linux.tar");
     #endif
 
-    const QString nightlyPath = "http://projfusion.com/files/Releases/nightly/";
+    const QUrl stableVersionFile = QUrl(serverURL + "/version.txt");
+    const QUrl nightlyVersionFile = QUrl(serverURL + "/Nightly/version.txt");
+
     const QString restoreFile = "/FusionClient.RESTORE";
     const QString VersionFile = "/FVersion.txt";
     const QString VersionOldFile = "/FVersion.OLD";
