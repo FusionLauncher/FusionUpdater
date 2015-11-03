@@ -45,7 +45,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Downloaded version: </string>
+          <string>Installed version: </string>
          </property>
         </widget>
        </item>
@@ -59,7 +59,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Current version: </string>
+          <string>Latest version: </string>
          </property>
         </widget>
        </item>
@@ -140,6 +140,27 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QCheckBox" name="cb_useNightly">
+         <property name="text">
+          <string>Use Testversion</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb_alternateServer">
+         <property name="text">
+          <string>Use fallback-server</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
