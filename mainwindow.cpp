@@ -46,9 +46,7 @@ void MainWindow::checkFiles()
     //Client missing & Version exists
     if ((!cUpdater->fileExists(chosenPath + clientExe)) && (cUpdater->fileExists(LibFusion::getWorkingDir().absolutePath() + VersionFile)))
     {
-        QFile file(chosenPath + VersionFile);
-        file.remove();
-        MainWindow::consoleOut("Missing client but version file exists. Removed version file.");
+        MainWindow::consoleOut("Missing client but version file exists.");
     }
 }
 
@@ -167,20 +165,35 @@ void MainWindow::restoreClient()
 
 void MainWindow::refreshValues()
 {
-    MainWindow::consoleOut("Getting latest Client Version...");
     VersionCheckResult vcr_online;
     if(ui->cb_useNightly->checkState())
-        vcr_online = cUpdater->getCRClientVersion(stableVersionFile);
+    {
+        if(ui->cb_alternateServer->checkState())
+            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile_FB);
+        else
+            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile);
+
+        MainWindow::consoleOut("Getting latest nightly Version...");
+    }
     else
-        vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile);
+    {
+        if(ui->cb_alternateServer->checkState())
+            vcr_online = cUpdater->getCRClientVersion(stableVersionFile_FB);
+        else
+            vcr_online = cUpdater->getCRClientVersion(stableVersionFile);
+
+        MainWindow::consoleOut("Getting latest stable Version...");
+    }
 
     if(vcr_online.error != "NoError"){
         consoleOut(vcr_online.error);
         return;
     }
-
-    if(online.Build + online.Minor + online.Major == 0)
+    online = vcr_online.version;
+    if(online.Build + online.Minor + online.Major == 0){
+        consoleOut("Error reading version!");
         return;
+    }
 
     ui->cVersionLabel->setText(cUpdater->VersionToStr(online));
 
@@ -228,9 +241,19 @@ void MainWindow::on_updateButton_clicked()
     else
     {
         if(ui->cb_useNightly->checkState())
-            MainWindow::downloadClient(nightlyClientURL);
+        {
+            if(ui->cb_alternateServer->checkState())
+                MainWindow::downloadClient(nightlyClientURL_FB);
+            else
+                MainWindow::downloadClient(nightlyClientURL);
+        }
         else
-            MainWindow::downloadClient(clientURL);
+        {
+            if(ui->cb_alternateServer->checkState())
+                MainWindow::downloadClient(clientURL_FB);
+            else
+                MainWindow::downloadClient(clientURL);
+        }
 
         MainWindow::consoleOut("Client updated.");
     }
@@ -262,7 +285,6 @@ void MainWindow::on_restoreButton_clicked()
 
 void MainWindow::on_refreshButton_clicked()
 {
-
     MainWindow::refreshValues();
 }
 

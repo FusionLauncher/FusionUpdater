@@ -89,21 +89,32 @@ private:
 
 
     const QString serverURL = "http://projfusion.com/files/Releases";
+    const QString serverURL_FB = "http://fsnupdt.florian-bury.de/";
 
     #ifdef _WIN32
         const supportedOS OS = Windows;
         const QString clientExe = "/FusionClient.exe";
         const QUrl clientURL = QUrl(serverURL + "/latest/FusionLauncher_Windows.exe");
-        const QUrl nightlyClientURL = QUrl(serverURL + "/Nightly/FusionLauncher_Win_Nightly.exe");
+        const QUrl nightlyClientURL = QUrl(serverURL + "/nightly/FusionLauncher_Win_Nightly.exe");
+
+        const QUrl clientURL_FB = QUrl(serverURL_FB + "/latest/FusionLauncher_Windows.exe");
+        const QUrl nightlyClientURL_FB = QUrl(serverURL_FB + "/nightly/FusionLauncher_Win_Nightly.exe");
     #elif __linux
         const supportedOS OS = Linux;
         const QString clientExe = "/FusionClient";
         const QUrl clientURL = QUrl(serverURL + "/latest/FusionClient_Linux.tar");
         const QUrl nightlyClientURL;
+
+        const QUrl clientURL_FB = QUrl(serverURL_FB + "/latest/FusionClient_Linux.tar");
+        const QUrl nightlyClientURL_FB;
     #endif
 
     const QUrl stableVersionFile = QUrl(serverURL + "/version.txt");
-    const QUrl nightlyVersionFile = QUrl(serverURL + "/Nightly/version.txt");
+    const QUrl nightlyVersionFile = QUrl(serverURL + "/nightly/version.txt");
+
+
+    const QUrl stableVersionFile_FB = QUrl(serverURL_FB + "/version.txt");
+    const QUrl nightlyVersionFile_FB = QUrl(serverURL_FB + "/nightly/version.txt");
 
     const QString restoreFile = "/FusionClient.RESTORE";
     const QString VersionFile = "/FVersion.txt";
