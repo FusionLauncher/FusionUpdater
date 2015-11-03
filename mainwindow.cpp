@@ -87,7 +87,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
         ui->progressBar->setValue(0);
         return;
     }
-    else if(reply->url() != clientURL)
+    else if(reply->url() != clientURL && reply->url() != nightlyClientURL && reply->url() != clientURL_FB && reply->url() != nightlyClientURL_FB)
     {
 
         MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
