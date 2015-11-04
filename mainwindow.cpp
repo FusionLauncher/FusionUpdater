@@ -18,6 +18,11 @@ MainWindow::MainWindow(QWidget *parent) :
     chosenPath = cUpdater->readPath();
     ui->pathText->blockSignals(false);
     MainWindow::refreshValues();
+
+
+#ifdef __linux
+    ui->cb_useNightly->setEnabled(false);
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -41,14 +46,12 @@ void MainWindow::checkFiles()
     //Client missing & Version exists
     if ((!cUpdater->fileExists(chosenPath + clientExe)) && (cUpdater->fileExists(LibFusion::getWorkingDir().absolutePath() + VersionFile)))
     {
-        QFile file(chosenPath + VersionFile);
-        file.remove();
-        MainWindow::consoleOut("Missing client but version file exists. Removed version file.");
+        MainWindow::consoleOut("Missing client but version file exists.");
     }
 }
 
 
-void MainWindow::downloadClient()
+void MainWindow::downloadClient(QUrl clientAddr)
 {
 
     MainWindow::consoleOut("Attempting to download client...");
@@ -56,7 +59,7 @@ void MainWindow::downloadClient()
     manager = new QNetworkAccessManager;
     QNetworkRequest request;
 
-    request.setUrl(clientURL);
+    request.setUrl(clientAddr);
 
     request.setRawHeader("User-Agent", "FCUpdater");
 
@@ -84,7 +87,7 @@ void MainWindow::replyFinished(QNetworkReply *reply)
         ui->progressBar->setValue(0);
         return;
     }
-    else if(reply->url() != clientURL)
+    else if(reply->url() != clientURL && reply->url() != nightlyClientURL && reply->url() != clientURL_FB && reply->url() != nightlyClientURL_FB)
     {
 
         MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
@@ -162,10 +165,35 @@ void MainWindow::restoreClient()
 
 void MainWindow::refreshValues()
 {
-    MainWindow::consoleOut("Getting latest Client Version...");
-    online = cUpdater->getCRClientVersion();
-    if(online.Build + online.Minor + online.Major == 0)
+    VersionCheckResult vcr_online;
+    if(ui->cb_useNightly->checkState())
+    {
+        if(ui->cb_alternateServer->checkState())
+            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile_FB);
+        else
+            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile);
+
+        MainWindow::consoleOut("Getting latest nightly Version...");
+    }
+    else
+    {
+        if(ui->cb_alternateServer->checkState())
+            vcr_online = cUpdater->getCRClientVersion(stableVersionFile_FB);
+        else
+            vcr_online = cUpdater->getCRClientVersion(stableVersionFile);
+
+        MainWindow::consoleOut("Getting latest stable Version...");
+    }
+
+    if(vcr_online.error != "NoError"){
+        consoleOut(vcr_online.error);
         return;
+    }
+    online = vcr_online.version;
+    if(online.Build + online.Minor + online.Major == 0){
+        consoleOut("Error reading version!");
+        return;
+    }
 
     ui->cVersionLabel->setText(cUpdater->VersionToStr(online));
 
@@ -212,7 +240,21 @@ void MainWindow::on_updateButton_clicked()
     }
     else
     {
-        MainWindow::downloadClient();
+        if(ui->cb_useNightly->checkState())
+        {
+            if(ui->cb_alternateServer->checkState())
+                MainWindow::downloadClient(nightlyClientURL_FB);
+            else
+                MainWindow::downloadClient(nightlyClientURL);
+        }
+        else
+        {
+            if(ui->cb_alternateServer->checkState())
+                MainWindow::downloadClient(clientURL_FB);
+            else
+                MainWindow::downloadClient(clientURL);
+        }
+
         MainWindow::consoleOut("Client updated.");
     }
 }
@@ -243,7 +285,6 @@ void MainWindow::on_restoreButton_clicked()
 
 void MainWindow::on_refreshButton_clicked()
 {
-
     MainWindow::refreshValues();
 }
 
