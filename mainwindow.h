@@ -4,16 +4,17 @@
 #include <QMainWindow>
 
 #include "fclientupdater.h"
-#include <QDebug>
-#include <QTime>
+
 #include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QFile>
+#include <QNetworkReply>
 #include <QDataStream>
-#include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QDebug>
+#include <QTime>
+#include <QFile>
+#include <QDir>
 
 namespace Ui {
 class MainWindow;
