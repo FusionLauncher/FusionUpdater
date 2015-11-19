@@ -4,13 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-QT       +=  network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
-TARGET = FusionUpdater
+TARGET = VersionChecker
 TEMPLATE = app
 
 
