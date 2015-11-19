@@ -143,7 +143,7 @@
        <item>
         <widget class="QCheckBox" name="cb_useNightly">
          <property name="text">
-          <string>Use Testversion</string>
+          <string>Use nightly versions</string>
          </property>
         </widget>
        </item>
@@ -187,7 +187,7 @@
        <item>
         <widget class="QPushButton" name="updateButton">
          <property name="text">
-          <string>Error</string>
+          <string>Download</string>
          </property>
         </widget>
        </item>

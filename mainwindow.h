@@ -48,7 +48,7 @@ public:
      * @param clientAddr URL of the Client, which should be downloaded.
      * @todo This needs to replace all Files, like the lib, CLI and Updater too.
      */
-    void downloadClient(QUrl clientAddr);
+    void downloadClient(FusionSources source);
 
 
     /**
@@ -86,7 +86,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     FClientUpdater *cUpdater;
-
 
     const QString serverURL = "http://projfusion.com/files/Releases";
     const QString serverURL_FB = "http://fsnupdt.florian-bury.de/";
@@ -131,9 +130,9 @@ private:
 
     FusionVersion installed;
     FusionVersion online;
+    bool preDownloadCheck();
 
-
-
+    FusionSources predefinedSource;
 };
 
 #endif // MAINWINDOW_H

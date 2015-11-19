@@ -11,13 +11,34 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    MainWindow::consoleOut("Started Fusion client updater.");
+
+    consoleOut("Started Fusion client updater.");
+
     cUpdater = new FClientUpdater();
-    ui->pathText->blockSignals(true); //this will prevent the double fire of refreshValues();
+
+    ui->pathText->blockSignals(true);
+
     ui->pathText->setText(cUpdater->readPath());
     chosenPath = cUpdater->readPath();
+
     ui->pathText->blockSignals(false);
-    MainWindow::refreshValues();
+
+
+    QStringList args = qApp->arguments();
+
+
+    if (args.length() == 2)
+    {
+        QString ar = args.value(1);
+        predefinedSource = (FusionSources)ar.toInt();
+        if (preDownloadCheck())
+            downloadClient(predefinedSource);
+    }
+    else
+    {
+        refreshValues();
+    }
+
 
 
 #ifdef __linux
@@ -30,6 +51,21 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+bool MainWindow::preDownloadCheck()
+{
+    QFile FusionExec(chosenPath + clientExe);
+
+    if (!FusionExec.exists())
+    {
+        consoleOut("Missing client executable!");
+    }
+
+    ui->widget_3->setEnabled(false);
+    ui->widget_2->setEnabled(false);
+    ui->widget->setEnabled(false);
+
+    return true;
+}
 
 void MainWindow::checkFiles()
 {
@@ -51,16 +87,32 @@ void MainWindow::checkFiles()
 }
 
 
-void MainWindow::downloadClient(QUrl clientAddr)
+void MainWindow::downloadClient(FusionSources source)
 {
-
-    MainWindow::consoleOut("Attempting to download client...");
+    consoleOut("Attempting to download client from");
 
     manager = new QNetworkAccessManager;
     QNetworkRequest request;
 
-    request.setUrl(clientAddr);
+    switch (source) {
+    case srcStable:
+        request.setUrl(QUrl(UPDATER_LATES_STABLE));
+        break;
+     case srcStable_Alt:
+         request.setUrl(QUrl(UPDATER_LATES_STABLE_ALT));
+         break;
+     case srcNightly:
+         request.setUrl(QUrl(UPDATER_LATES_NIGHTLY));
+         break;
+     case srcNightly_Alt:
+         request.setUrl(QUrl(UPDATER_LATES_NIGHTLY_ALT));
+         break;
+    default:
+        return;
+        break;
+    }
 
+    consoleOut(request.url().toString());
     request.setRawHeader("User-Agent", "FCUpdater");
 
     reply = manager->get(request);
@@ -69,7 +121,6 @@ void MainWindow::downloadClient(QUrl clientAddr)
     ui->pathText->setEnabled(false);
 
     QObject::connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(updateProgressBar(qint64,qint64)));
-
     QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 }
 
@@ -87,7 +138,8 @@ void MainWindow::replyFinished(QNetworkReply *reply)
         ui->progressBar->setValue(0);
         return;
     }
-    else if(reply->url() != clientURL && reply->url() != nightlyClientURL && reply->url() != clientURL_FB && reply->url() != nightlyClientURL_FB)
+    else if(reply->url() != QString(UPDATER_LATES_STABLE) && reply->url() != QString(UPDATER_LATES_STABLE_ALT)
+            && reply->url() != QString(UPDATER_LATES_NIGHTLY) && reply->url() != QString(UPDATER_LATES_NIGHTLY_ALT))
     {
 
         MainWindow::consoleOut("[ERROR] Client reply URL does not match real client URL.");
@@ -165,59 +217,44 @@ void MainWindow::restoreClient()
 
 void MainWindow::refreshValues()
 {
-    VersionCheckResult vcr_online;
-    if(ui->cb_useNightly->checkState())
+    bool Nightly = (bool)ui->cb_useNightly->checkState();
+    VersionCheckResult updateStatus = cUpdater->checkForUpdate(Nightly);
+
+    if (updateStatus.Status == ErrorOnCheckingOnline)
     {
-        if(ui->cb_alternateServer->checkState())
-            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile_FB);
-        else
-            vcr_online = cUpdater->getCRClientVersion(nightlyVersionFile);
-
-        MainWindow::consoleOut("Getting latest nightly Version...");
-    }
-    else
-    {
-        if(ui->cb_alternateServer->checkState())
-            vcr_online = cUpdater->getCRClientVersion(stableVersionFile_FB);
-        else
-            vcr_online = cUpdater->getCRClientVersion(stableVersionFile);
-
-        MainWindow::consoleOut("Getting latest stable Version...");
-    }
-
-    if(vcr_online.error != "NoError"){
-        consoleOut(vcr_online.error);
+        consoleOut("Error on checking latest version Online!");
+        ui->updateButton->setEnabled( false );
         return;
     }
-    online = vcr_online.version;
-    if(online.Build + online.Minor + online.Major == 0){
-        consoleOut("Error reading version!");
-        return;
+    else
+    {
+        ui->updateButton->setEnabled( true );
+        ui->cVersionLabel->setText( updateStatus.VersionOnline.toString() );
     }
 
-    ui->cVersionLabel->setText(cUpdater->VersionToStr(online));
 
-    ui->updateButton->setEnabled(true);
-    ui->pathText->setEnabled(true);
-
-    MainWindow::checkFiles();
-    MainWindow::consoleOut("Read Clientversion from " + LibFusion::getWorkingDir().absolutePath() + VersionFile);
-
-    installed = cUpdater->getDLClientVersion(LibFusion::getWorkingDir().absolutePath() + VersionFile);
-    ui->dVersionLabel->setText(cUpdater->VersionToStr(installed));
-
-    if (cUpdater->fileExists(chosenPath + clientExe))
-        ui->updateButton->setText("Update");
+    if(updateStatus.Status == ErrorOnCheckingLocal)
+    {
+        consoleOut("Error on checking installed version!");
+    }
     else
-        ui->updateButton->setText("Download");
-
-    if (cUpdater->fileExists(chosenPath + clientExeOld))
-        ui->restoreButton->setEnabled(true);
-    else
-        ui->restoreButton->setEnabled(false);
+    {
+        ui->dVersionLabel->setText(updateStatus.VersionLocal.toString());
+    }
 
 
-    MainWindow::consoleOut("Refreshing done.");
+
+    predefinedSource = updateStatus.Source;
+    if(updateStatus.Status == UpToDate)
+    {
+        consoleOut("You are up to date!");
+    }
+    else if ( updateStatus.Status != ErrorOnCheckingOnline && updateStatus.Status != ErrorOnCheckingLocal )
+    {
+        consoleOut("New Version found!\nClick Download to install.");
+    }
+
+
 }
 
 void MainWindow::consoleOut(QString s)
@@ -229,34 +266,9 @@ void MainWindow::consoleOut(QString s)
 void MainWindow::on_updateButton_clicked()
 {
     ui->pathText->setEnabled(false);
+    preDownloadCheck();
+    downloadClient(predefinedSource);
 
-    if (installed==online && online.initialized)
-    {
-        MainWindow::consoleOut("Client does not need updated.");
-    }
-    else if (!online.initialized)
-    {
-        MainWindow::consoleOut("Couldn't get Online-Version!");
-    }
-    else
-    {
-        if(ui->cb_useNightly->checkState())
-        {
-            if(ui->cb_alternateServer->checkState())
-                MainWindow::downloadClient(nightlyClientURL_FB);
-            else
-                MainWindow::downloadClient(nightlyClientURL);
-        }
-        else
-        {
-            if(ui->cb_alternateServer->checkState())
-                MainWindow::downloadClient(clientURL_FB);
-            else
-                MainWindow::downloadClient(clientURL);
-        }
-
-        MainWindow::consoleOut("Client updated.");
-    }
 }
 
 void MainWindow::on_restoreButton_clicked()
