@@ -8,8 +8,8 @@ git clone https://github.com/FusionLauncher/LibFusion
 cd LibFusion
 qmake && make
 cd ..
-git clone https://github.com/lolsatbirds/FusionClientUpdater
-cd FusionClientUpdater
+git clone https://github.com/FusionLauncher/FusionUpdater
+cd FusionUpdater
 qmake && make
 LD_LIBRARY_PATH=../LibFusion ./FusionClientUpdater
 ```
